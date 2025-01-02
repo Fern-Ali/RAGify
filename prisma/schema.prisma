@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  threads   Thread[]  // One-to-many relationship with threads
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model FoundationModel {
+  id          Int       @id @default(autoincrement())
+  name        String    // Name of the model, e.g., "Llama 3.370B"
+  version     String?   // Optional: Version of the model
+  parameters  Int?      // Optional: Number of parameters, e.g., 370B
+  threads     Thread[]  // One-to-many relationship with threads
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Thread {
+  id                Int             @id @default(autoincrement())
+  sessionId         String?         // Optional session ID for AWS session tracking
+  userId            Int             // Foreign key to the user who started the thread
+  user              User            @relation(fields: [userId], references: [id])
+  foundationModelId Int             // Foreign key to the foundation model
+  foundationModel   FoundationModel @relation(fields: [foundationModelId], references: [id])
+  messages          Message[]       // One-to-many relationship with messages
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Message {
+  id                Int             @id @default(autoincrement())
+  text              String          // The content of the message
+  sender            MessageSender   // Enum to distinguish user or model
+  threadId          Int             // Foreign key to the thread
+  thread            Thread          @relation(fields: [threadId], references: [id])
+  parentMessageId   Int?            // Optional: Link to a parent message
+  parentMessage     Message?        @relation("ParentChild", fields: [parentMessageId], references: [id])
+  childMessages     Message[]       @relation("ParentChild")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  metadata          Json?           // New field to store metadata as JSON
+}
+
+
+enum MessageSender {
+  USER
+  MODEL
+}
