@@ -69,7 +69,7 @@ export default function RAGResponse({ response }) {
   };
   console.log(response)
   return (
-    <Box sx={{p:2, mt: 10}}>
+    <Box sx={{p:2, }}>
       {/* <Typography  variant="h5">User Prompt</Typography>
       <Typography variant="body1" width="100%" sx={{p:3}}>Talk to me about the useNotifications api in toolpad and how I can use it, with an example.</Typography>
       

@@ -12,6 +12,9 @@ import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
 import theme from '../theme';
 
+import { RightPanelProvider } from '../app/(dashboard)/contexts/RightPanelContext';
+
+
 const NAVIGATION: Navigation = [
   {
     kind: 'header',
@@ -60,7 +63,8 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <SessionProvider session={session}>
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          
+            
+            <RightPanelProvider>
             <AppProvider
               navigation={NAVIGATION}
               branding={BRANDING}
@@ -70,6 +74,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             >
               {props.children}
             </AppProvider>
+            </RightPanelProvider>
             
           </AppRouterCacheProvider>
         </SessionProvider>

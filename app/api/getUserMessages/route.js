@@ -20,19 +20,19 @@ export async function GET(req) {
   try {
     const thread = await prisma.thread.findFirst({
       where: { userId: numericUserId },
-      // orderBy: {
-      //   createdAt: 'desc', // Get the most recently created thread
-      // },
-      // include: {
-      //   messages: {
-      //     orderBy: {
-      //       createdAt: 'asc', // Messages sorted in chronological order
-      //     },
-      //   },
-      // },
+      orderBy: {
+        createdAt: 'desc', // Get the most recently created thread
+      },
+      include: {
+        messages: {
+          orderBy: {
+            createdAt: 'asc', // Messages sorted in opposite chronological order (most recent)
+          },
+        },
+      },
     });
 
-    return NextResponse.json({ sessionId: thread?.sessionId || null });
+    return NextResponse.json({ thread: thread ? thread : null });
   } catch (error) {
     console.error("Error fetching session:", error);
     return NextResponse.json(

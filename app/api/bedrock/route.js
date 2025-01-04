@@ -26,7 +26,6 @@ export async function POST(req) {
       );
     }
 
-    // Get the current session and user
     const session = await auth();
     console.log("[ BEDROCK ] Session retrieved:", session);
 
@@ -41,7 +40,6 @@ export async function POST(req) {
     const userId = Number(session.user.id);
     console.log(`[ BEDROCK ] Processing request for userId: ${userId}`);
 
-    // Initialize Bedrock client
     const client = new BedrockAgentRuntimeClient({
       region: "us-east-2",
       credentials: {
@@ -50,40 +48,56 @@ export async function POST(req) {
       },
     });
 
-    // Construct the input object
-    const input = {
-      sessionId,
-      input: {
-        text: inputText,
-      },
-      retrieveAndGenerateConfiguration: {
-        type: "KNOWLEDGE_BASE",
-        knowledgeBaseConfiguration: {
-          knowledgeBaseId: "KVHWFXZFZK",
-          modelArn:
-            "arn:aws:bedrock:us-east-2::foundation-model/meta.llama3-3-70b-instruct-v1:0",
-          retrievalConfiguration: {
-            vectorSearchConfiguration: {
-              numberOfResults: 5,
-              overrideSearchType: "SEMANTIC",
+    // Function to send a command to Bedrock
+    const sendBedrockCommand = async (sessionIdOverride) => {
+      const input = {
+        sessionId: sessionIdOverride,
+        input: {
+          text: inputText,
+        },
+        retrieveAndGenerateConfiguration: {
+          type: "KNOWLEDGE_BASE",
+          knowledgeBaseConfiguration: {
+            knowledgeBaseId: "KVHWFXZFZK",
+            modelArn:
+              "arn:aws:bedrock:us-east-2::foundation-model/meta.llama3-3-70b-instruct-v1:0",
+            retrievalConfiguration: {
+              vectorSearchConfiguration: {
+                numberOfResults: 5,
+                overrideSearchType: "SEMANTIC",
+              },
             },
           },
         },
-      },
+      };
+
+      console.log("[ BEDROCK ] Sending request to Bedrock with input:", input);
+      const command = new RetrieveAndGenerateCommand(input);
+      return client.send(command);
     };
 
-    console.log("[ BEDROCK ] Sending request to Bedrock with input:", input);
-
-    // Execute the RetrieveAndGenerateCommand
-    const command = new RetrieveAndGenerateCommand(input);
-    const response = await client.send(command);
+    let response;
+    try {
+      response = await sendBedrockCommand(sessionId);
+    } catch (error) {
+      if (
+        error.name === "ValidationException" &&
+        error.message.includes("Session with Id")
+      ) {
+        console.warn(
+          "[ BEDROCK ] Invalid session detected, retrying with sessionId = null"
+        );
+        response = await sendBedrockCommand(null);
+      } else {
+        throw error;
+      }
+    }
 
     console.log("[ BEDROCK ] Response received from Bedrock:", response);
 
-    // Extract the new sessionId from the Bedrock response
     const newSessionId = response.sessionId;
     const bedrockResponse = response.output?.text;
-    console.log("[ BEDROCK ] New sessionId from Bedrock:", newSessionId);
+
     try {
       console.log("[ BEDROCK ] Sending data to update session:", {
         userId: session?.user?.id,
@@ -92,33 +106,57 @@ export async function POST(req) {
         bedrockResponse,
         metadata: response,
       });
-    
-      const updateRes = await fetch(`${process.env.NEXTAUTH_URL}/api/update-session-id`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: session?.user?.id,
-          inputText: inputText,
-          sessionId: newSessionId,
-          bedrockResponse,
-          metadata: response,
-        }),
-      });
-    
+
+      const updateRes = await fetch(
+        `${process.env.NEXTAUTH_URL}/api/update-session-id`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: session?.user?.id,
+            inputText: inputText,
+            sessionId: newSessionId,
+            bedrockResponse,
+            metadata: response,
+          }),
+        }
+      );
+
       if (!updateRes.ok) {
         const errorData = await updateRes.json();
         console.error("[ BEDROCK ] Error response from API:", errorData);
-        throw new Error("[ BEDROCK ] Failed to update sessionId in the database");
+        throw new Error(
+          "[ BEDROCK ] Failed to update sessionId in the database"
+        );
       }
-    
+
       const databaseOperation = await updateRes.json();
       console.log("[ BEDROCK ] Database operation response:", databaseOperation);
     } catch (err) {
       console.error("[ BEDROCK ] Error during session update:", err);
-      
     }
+
+    return new Response(
+      JSON.stringify({ ...response, updatedSessionId: newSessionId }),
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    console.error("[ BEDROCK ] Error querying Bedrock:", error.message);
+    console.error("[ BEDROCK ] Full error details:", error);
+    return new Response(
+      JSON.stringify({
+        error: "[ BEDROCK ] Failed to query Bedrock",
+        details: error.message || error,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
     
     // // Compare the new sessionId with the current one in the database
     // const userThread = await prisma.thread.findFirst({
@@ -145,21 +183,4 @@ export async function POST(req) {
     // }
 
     // Return the updated response to the client
-    return new Response(
-      JSON.stringify({ ...response, updatedSessionId: newSessionId }),
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  } catch (error) {
-    console.error("[ BEDROCK ] Error querying Bedrock:", error.message);
-    console.error("[ BEDROCK ] Full error details:", error);
-    return new Response(
-      JSON.stringify({
-        error: "[ BEDROCK ] Failed to query Bedrock",
-        details: error.message || error,
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
+ 

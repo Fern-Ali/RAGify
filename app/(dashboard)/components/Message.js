@@ -5,8 +5,23 @@ import { PrismaClient } from "@prisma/client";
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid2';
+import TextField from '@mui/material/TextField';
+import MessageBox from './MessageBox';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
 
 const prisma = new PrismaClient();
+
+function AppBottomBar() {
+  return (
+    <React.Fragment>
+      <AppBar position="fixed" color="primary" sx={{ top: 'auto', bottom: 0, }}>
+        <Toolbar><TextField fullWidth></TextField></Toolbar>
+      </AppBar>
+      <Toolbar />
+    </React.Fragment>
+  );
+}
 
 export default function Message({session, response, setResponse}) {
   const [query, setQuery] = useState(""); // State for the input query
@@ -55,33 +70,40 @@ export default function Message({session, response, setResponse}) {
   return (
     <React.Fragment >
       <h1>Query Bedrock</h1>
-    <Grid container maxWidth="xl" sx={{border: "4px solid red"}}>
+    <Grid container  sx={{minHeight: '100vh', flexDirection: 'column', display: 'flex'}}>
+      
+      
+
+      { (
+        <div>
+          {/* <h2>Response:</h2>
+          <p>{response.output?.text}</p> */}
+          <MessageBox response={response}></MessageBox>
+          {/* <pre>{JSON.stringify(response, null, 2)}</pre> */}
+        </div>
+      )}
       
       <form onSubmit={handleSubmit}>
         <label htmlFor="query">Enter your query:</label>
-        <input
+        <TextField
           id="query"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask Bedrock a question..."
           required
-          aria-multiline={true}
+          multiline
+          // rows={4}
+          fullWidth
         />
         <button type="submit" disabled={loading}>
           {loading ? "Loading..." : "Submit"}
         </button>
       </form>
-
+      
       {error && <p style={{ color: "red" }}>Error: {error}</p>}
-
-      {response && (
-        <div>
-          <h2>Response:</h2>
-          <p>{response.output?.text}</p>
-          {/* <pre>{JSON.stringify(response, null, 2)}</pre> */}
-        </div>
-      )}
+      
+      <AppBottomBar />
     </Grid>
     </React.Fragment>
   );

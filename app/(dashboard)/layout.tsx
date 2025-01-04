@@ -30,13 +30,19 @@ import ListItemText from '@mui/material/ListItemText';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import Toolbar from '@mui/material/Toolbar';
+import MenuIcon from '@mui/icons-material/Menu';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 
 import { styled } from '@mui/material';
 
+import { useRightPanel } from '../(dashboard)/contexts/RightPanelContext';
+
+import RagResponse from '../(dashboard)/components/RagResponse';
 
 
 
-const drawerWidth = 450;
+
+const drawerWidth = 600;
 
 const ContentWrapper = styled(Box)(({ theme, isDrawerOpen }) => ({
   flexGrow: 1,
@@ -62,7 +68,7 @@ const RightDrawer = styled(Drawer)(({ theme }) => ({
 export default function Layout(props: { children: React.ReactNode }) {
   const [isDrawerOpen, setDrawerOpen] = React.useState(true);
   const handleToggleDrawer = () => setDrawerOpen((prev) => !prev);
-
+  const { response, setResponse } = useRightPanel();
 
   function CustomAppTitle() {
     return (
@@ -80,9 +86,15 @@ export default function Layout(props: { children: React.ReactNode }) {
   function ToolbarActionsSearch({ onToggleDrawer }) {
     return (
       <Stack direction="row">
-        <IconButton onClick={onToggleDrawer} aria-label="Toggle right drawer">
-        <ChevronRightIcon />
+        <Tooltip  title={isDrawerOpen ? "Collapse menu" : "Expand menu"}>
+        <IconButton  onClick={onToggleDrawer} aria-label="Toggle right drawer">
+          {isDrawerOpen ? (
+            <MenuOpenIcon sx={{ transform: 'scaleX(-1)' }} />
+          ) : (
+            <MenuIcon />
+          )}
       </IconButton>
+        </Tooltip>
         <Tooltip title="Search" enterDelay={1000}>
           <div>
             <IconButton
@@ -117,7 +129,8 @@ export default function Layout(props: { children: React.ReactNode }) {
     );
   }
   return (
-    <DashboardLayout defaultSidebarCollapsed 
+    
+    <DashboardLayout defaultSidebarCollapsed={false} 
     slots={{
       appTitle: CustomAppTitle,
       toolbarActions: () => <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />,
@@ -130,7 +143,7 @@ export default function Layout(props: { children: React.ReactNode }) {
     // }}
     >
       {/* Main Content Area */}
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+      <Box sx={{ display: 'flex', height: '100vh', overflow: 'auto' }}>
         <ContentWrapper isDrawerOpen={isDrawerOpen}>
           <PageContainer maxWidth="xl">
             {props.children}
@@ -168,10 +181,11 @@ export default function Layout(props: { children: React.ReactNode }) {
               overflow: 'auto',
             }}
           >
-            <p>Right Drawer Content</p>
+            { response ? <RagResponse response={response}></RagResponse> : null}
           </Box>
         </RightDrawer>
       </Box>
     </DashboardLayout>
+    
   );
 }  
