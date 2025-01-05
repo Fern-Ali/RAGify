@@ -11,7 +11,7 @@ const LatestThreadContext = createContext(null);
 export const useLatestThread = () => useContext(LatestThreadContext);
 
 // Provider component
-export const LatestThreadProvider = ({ userId, children }) => {
+export const LatestThreadProvider = ({ userId, response, children }) => {
   const [latestThread, setLatestThread] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +36,7 @@ export const LatestThreadProvider = ({ userId, children }) => {
     if (userId) {
       fetchLatestThread();
     }
-  }, [userId]);
+  }, [userId, response]);
 
   return (
     <LatestThreadContext.Provider value={{ latestThread, loading }}>

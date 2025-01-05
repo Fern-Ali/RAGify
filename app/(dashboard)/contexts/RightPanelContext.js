@@ -12,9 +12,10 @@ export function useRightPanel() {
 // Context provider
 export function RightPanelProvider({ children }) {
   const [response, setResponse] = useState(null);
+  const [isDrawerOpen, setDrawerOpen] = useState(true);
 
   return (
-    <RightPanelContext.Provider value={{ response, setResponse }}>
+    <RightPanelContext.Provider value={{  response, setResponse, isDrawerOpen, setDrawerOpen }}>
       {children}
     </RightPanelContext.Provider>
   );

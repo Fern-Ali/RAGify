@@ -2,74 +2,92 @@
 import * as React from 'react';
 import { useState } from "react";
 import { PrismaClient } from "@prisma/client";
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid2';
-import TextField from '@mui/material/TextField';
-import MessageBox from './MessageBox';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 
+
+import Grid from '@mui/material/Grid2';
+
+import MessageBox from './MessageBox';
+import AppBottomBar from './AppBottomBar';
+
+import { useNotifications } from '@toolpad/core/useNotifications';
+
+import { useRightPanel } from '../contexts/RightPanelContext';
+import { useLeftPanel } from '../contexts/LeftPanelContext';
 const prisma = new PrismaClient();
 
-function AppBottomBar() {
-  return (
-    <React.Fragment>
-      <AppBar position="fixed" color="primary" sx={{ top: 'auto', bottom: 0, }}>
-        <Toolbar><TextField fullWidth></TextField></Toolbar>
-      </AppBar>
-      <Toolbar />
-    </React.Fragment>
-  );
-}
+
 
 export default function Message({session, response, setResponse}) {
   const [query, setQuery] = useState(""); // State for the input query
-  // const [response, setResponse] = useState(null); // State for the API response
+  const { isNavigationExpanded, leftPanelWidth } = useLeftPanel();
+  const { isDrawerOpen, setDrawerOpen } = useRightPanel();
   const [loading, setLoading] = useState(false); // State for loading indicator
   const [error, setError] = useState(null); // State for error handling
-
+  const notifications = useNotifications(); 
+  
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent form submission from reloading the page
     setLoading(true);
     setError(null);
 
     const sessionId = session?.user?.sessionId;
+    
+
     console.log("Session object:", session);
     console.log("Session ID being sent:", sessionId);
 
     try {
-      const res = await fetch("/api/bedrock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inputText: query, // Pass the query to the AWS BEDROCK API
-          sessionId, // Dynamically use the sessionId or null
-        }),
-      });
+        // Step 1: Sending request to Bedrock
+        notifications.show("Sending request to Bedrock...", { severity: "info", autoHideDuration: 1000 });
 
-      if (!res.ok) {
-        throw new Error("Failed to fetch response from Bedrock");
-      }
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate a delay for the notification
 
-      const data = await res.json();
+        // Step 2: Retrieving sources
+        notifications.show("Retrieving sources...", { severity: "info", autoHideDuration: 4000 });
 
-      
-      setResponse(data); // Save the response to state
+        await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate a delay for the notification
+
+        // Make the API request
+        const res = await fetch("/api/bedrock", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                inputText: query, // Pass the query to the AWS BEDROCK API
+                sessionId, // Dynamically use the sessionId or null
+            }),
+        });
+
+        if (!res.ok) {
+            throw new Error("Failed to fetch response from Bedrock");
+        }
+
+        // Step 3: Generating response
+        notifications.show("Generating response...", { severity: "info", autoHideDuration: 1000 });
+
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate a delay for the notification
+
+        const data = await res.json();
+        setResponse(data); // Save the response to state
+
+        // Final success notification
+        notifications.show("Response generated!", { severity: "success", autoHideDuration: 2000 });
 
     } catch (err) {
         console.error("Error during session update:", err);
         setError(err.message);
+
+        // Error notification
+        notifications.show(`Error: ${err.message}`, { severity: "error", autoHideDuration: 3000 });
     } finally {
         setLoading(false);
     }
-  };
+};
 
   return (
     <React.Fragment >
-      <h1>Query Bedrock</h1>
+      
     <Grid container  sx={{minHeight: '100vh', flexDirection: 'column', display: 'flex'}}>
       
       
@@ -78,32 +96,24 @@ export default function Message({session, response, setResponse}) {
         <div>
           {/* <h2>Response:</h2>
           <p>{response.output?.text}</p> */}
-          <MessageBox response={response}></MessageBox>
+          <MessageBox 
+          response={response} 
+          isDrawerOpen={isDrawerOpen} 
+          handleSubmit={handleSubmit} 
+          query={query}
+          setQuery={setQuery} 
+          error={error}
+          loadingBedrock={loading}
+          isNavigationExpanded={isNavigationExpanded}
+          leftPanelWidth={leftPanelWidth}
+          ></MessageBox>
           {/* <pre>{JSON.stringify(response, null, 2)}</pre> */}
         </div>
       )}
       
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="query">Enter your query:</label>
-        <TextField
-          id="query"
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask Bedrock a question..."
-          required
-          multiline
-          // rows={4}
-          fullWidth
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Submit"}
-        </button>
-      </form>
+     
       
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
-      
-      <AppBottomBar />
+      {/* <Grid size={12} ><AppBottomBar isDrawerOpen={isDrawerOpen} loading={loading} error={error} handleSubmit={handleSubmit} query={query} isNavigationExpanded={isNavigationExpanded}/></Grid> */}
     </Grid>
     </React.Fragment>
   );

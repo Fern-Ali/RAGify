@@ -7,14 +7,17 @@ import Message from '../components/Message'
 import Grid from '@mui/material/Grid2';
 import Box from '@mui/material/Box';
 import { useRightPanel } from '../contexts/RightPanelContext';
+import { LatestThreadProvider  } from '../contexts/LatestThreadContext';
 
 export default function MessageHandler({session}) {
   
 //   const [response, setResponse] = useState(null); // State for the API response
 //   const { rightPanelContent, setRightPanelContent } = useRightPanel();
-const { response, setResponse } = useRightPanel();
+  const { response, setResponse } = useRightPanel();
+
   
   return (
+    <LatestThreadProvider userId={session?.user?.id} response={response}>  
     <React.Fragment>
         <Box sx={{ flex: 1,  }}>
         <Grid >
@@ -32,6 +35,7 @@ const { response, setResponse } = useRightPanel();
         </Grid>
         </Box>
     </React.Fragment>
+    </LatestThreadProvider>
   );
 }
 

@@ -36,8 +36,10 @@ import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import { styled } from '@mui/material';
 
 import { useRightPanel } from '../(dashboard)/contexts/RightPanelContext';
+import { useLeftPanel } from '../(dashboard)/contexts/LeftPanelContext';
 
 import RagResponse from '../(dashboard)/components/RagResponse';
+import DefaultState from '../(dashboard)/components/DefaultState';
 
 
 
@@ -66,10 +68,11 @@ const RightDrawer = styled(Drawer)(({ theme }) => ({
 }));
 
 export default function Layout(props: { children: React.ReactNode }) {
-  const [isDrawerOpen, setDrawerOpen] = React.useState(true);
+  const { isNavigationExpanded, toggleNavigationExpanded } = useLeftPanel();
+  const { isDrawerOpen, setDrawerOpen } = useRightPanel();
   const handleToggleDrawer = () => setDrawerOpen((prev) => !prev);
   const { response, setResponse } = useRightPanel();
-
+  console.log(isDrawerOpen,isNavigationExpanded)
   function CustomAppTitle() {
     return (
       <Stack direction="row" alignItems="center" spacing={2}>
@@ -130,7 +133,7 @@ export default function Layout(props: { children: React.ReactNode }) {
   }
   return (
     
-    <DashboardLayout defaultSidebarCollapsed={false} 
+    <DashboardLayout defaultSidebarCollapsed={!isNavigationExpanded} 
     slots={{
       appTitle: CustomAppTitle,
       toolbarActions: () => <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />,
@@ -145,7 +148,7 @@ export default function Layout(props: { children: React.ReactNode }) {
       {/* Main Content Area */}
       <Box sx={{ display: 'flex', height: '100vh', overflow: 'auto' }}>
         <ContentWrapper isDrawerOpen={isDrawerOpen}>
-          <PageContainer maxWidth="xl">
+          <PageContainer maxWidth="md">
             {props.children}
           </PageContainer>
         </ContentWrapper>
@@ -181,7 +184,7 @@ export default function Layout(props: { children: React.ReactNode }) {
               overflow: 'auto',
             }}
           >
-            { response ? <RagResponse response={response}></RagResponse> : null}
+            { response ? <RagResponse response={response}></RagResponse> : <DefaultState></DefaultState>}
           </Box>
         </RightDrawer>
       </Box>

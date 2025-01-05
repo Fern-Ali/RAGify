@@ -75,7 +75,7 @@ export default function RAGResponse({ response }) {
       
       <Typography variant="h5">Generated Response</Typography>
       <Typography variant="body1" sx={{p:3}}>{output.text}</Typography> */}
-
+      
       {/* Supporting Citations */}
       <FormControlLabel control={<Switch checked={showInsights} onChange={handleSwitchChange} />} label={`Show ${Object.keys(citations).length} Response Insights`} />
       {showInsights ? <React.Fragment>

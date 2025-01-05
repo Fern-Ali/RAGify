@@ -13,7 +13,7 @@ import { auth } from '../auth';
 import theme from '../theme';
 
 import { RightPanelProvider } from '../app/(dashboard)/contexts/RightPanelContext';
-
+import { LeftPanelProvider } from '../app/(dashboard)/contexts/LeftPanelContext';
 
 const NAVIGATION: Navigation = [
   {
@@ -65,6 +65,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
           <AppRouterCacheProvider options={{ enableCssLayer: true }}>
             
             <RightPanelProvider>
+            <LeftPanelProvider>
             <AppProvider
               navigation={NAVIGATION}
               branding={BRANDING}
@@ -74,6 +75,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             >
               {props.children}
             </AppProvider>
+            </LeftPanelProvider>
             </RightPanelProvider>
             
           </AppRouterCacheProvider>
