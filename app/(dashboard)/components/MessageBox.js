@@ -22,10 +22,12 @@ import { useLatestThread } from '../contexts/LatestThreadContext';
 
 import { useTheme } from '@mui/material/styles';
 
+import { useSearchParams } from 'next/navigation';
 
 
 function SelectActionCard({
-    response, 
+    response,
+    setResponse, 
     isDrawerOpen, 
     handleSubmit, 
     query, 
@@ -36,7 +38,10 @@ function SelectActionCard({
     leftPanelWidth}) {
   const [selectedCard, setSelectedCard] = React.useState(0);
   const [thread, setThread] = React.useState(null);
+  const [favoritedCards, setFavoritedCards] = React.useState([]); // Array of favorited card IDs
+
   const { latestThread, loading } = useLatestThread();
+  const searchParams = useSearchParams();
   const theme = useTheme();
   const drawerWidth = 600;
   const notifications = useNotifications();
@@ -51,8 +56,33 @@ function SelectActionCard({
     }
   }, [response, latestThread, loadingBedrock]);
 
-
-
+  useEffect(() => {
+    const sampleQuery = searchParams.get('sampleQuery');
+    if (sampleQuery) {
+      setQuery(sampleQuery);
+    }
+  }, [searchParams]);
+  
+  const toggleFavorite = (cardId) => {
+    setFavoritedCards((prevFavorited) =>
+      prevFavorited.includes(cardId)
+        ? prevFavorited.filter((id) => id !== cardId) // Remove from favorites
+        : [...prevFavorited, cardId] // Add to favorites
+    );
+  };
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      weekday: 'long', // e.g., 'Monday'
+      year: 'numeric', // e.g., '2025'
+      month: 'long', // e.g., 'January'
+      day: 'numeric', // e.g., '6'
+      hour: '2-digit', // e.g., '10'
+      minute: '2-digit', // e.g., '08'
+      second: '2-digit', // e.g., '36'
+      hour12: true, // e.g., 'AM/PM' format
+    });
+  }
   return (
     <Box
       sx={{
@@ -67,7 +97,7 @@ function SelectActionCard({
         {!loading ? latestThread?.messages.map((card, index) => (
          
          
-         <React.Fragment>
+         <React.Fragment key={card.id} >
             
             <Grid container sx={{width: "100%", justifyContent: "left",}}>         
             {card.sender == "USER" ? <Grid size={"grow"} sx={{border: "", display: { xs: "none", md: "inline" }}}></Grid> : null}
@@ -80,7 +110,21 @@ function SelectActionCard({
                 backgroundColor: card.sender == "MODEL" ? theme.palette.background.default:""
                 }}>
             <CardActionArea
-                onClick={() => setSelectedCard(index)}
+                onClick={() => {
+                    setSelectedCard(index);
+                    if (card.metadata) {
+                      setResponse(card.metadata); // Update the response with card.metadata
+                      notifications.show("Response updated!", {
+                        severity: "info",
+                        autoHideDuration: 2000,
+                      });
+                    } else {
+                      notifications.show("No metadata available for this card.", {
+                        severity: "warning",
+                        autoHideDuration: 2000,
+                      });
+                    }
+                  }}
                 data-active={selectedCard === index ? '' : undefined}
                 sx={{
                     textAlign: card.sender == "MODEL" ? "left":"left",
@@ -105,13 +149,26 @@ function SelectActionCard({
                  {card.text}
                </Typography>
                <Typography sx={{p:1}} variant="caption" color={card.sender == "USER" ? "primary" : "success"}>
-                 {card.createdAt}
+                 {formatDate(card.createdAt)}
                </Typography>
              </CardContent>
-             {card.sender == 'MODEL' ? <CardActions disableSpacing>
-                 <IconButton  size="small" aria-label="add to favorites">
-                     <FavoriteIcon  size="small"/>
-                 </IconButton>
+             
+            </CardActionArea>
+            {card.sender == 'MODEL' ? <CardActions disableSpacing>
+                <IconButton
+                    size="small"
+                    aria-label="add to favorites"
+                    onClick={() => toggleFavorite(card.id)} // Toggle favorite
+                    >
+                    <FavoriteIcon
+                        size="small"
+                        sx={{
+                        color: favoritedCards.includes(card.id)
+                            ? theme.palette.error.main // Highlighted when favorited
+                            : theme.palette.action.disabled,
+                        }}
+                    />
+                </IconButton>
                  <IconButton 
                  size="small" 
                  aria-label="copy" 
@@ -132,7 +189,6 @@ function SelectActionCard({
                  </IconButton>
                  
                  </CardActions> : null}
-            </CardActionArea>
          </Card> 
                 </Grid>
 
@@ -182,7 +238,7 @@ function SelectActionCard({
           margin: "0 auto",
           right: isDrawerOpen ? drawerWidth : 0,
           width: {
-            xs: '100%', // Full width on smaller viewports
+            xs: `calc(100% -  64)px)`, // Full width on smaller viewports
             md: isDrawerOpen
               ? `calc(100% - ${(isNavigationExpanded ? 320 : 64) + drawerWidth}px)` // Adjust for both panels
               : `calc(100% - ${(isNavigationExpanded ? 320 : 64)}px)`, // Adjust for left panel only

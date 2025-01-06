@@ -7,7 +7,7 @@ export default async function OrdersPage() {
 
   return (
     <Typography>
-      Welcome to the Toolpad orders!
+      Choose a Model from the dropdown to get started.
     </Typography>
   );
 }

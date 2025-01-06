@@ -1,66 +1,56 @@
 "use client";
-import * as React from 'react';
+import * as React from "react";
 import {
   DashboardLayout,
   ThemeSwitcher,
   type SidebarFooterProps,
-} from '@toolpad/core/DashboardLayout';
-import { PageContainer } from '@toolpad/core/PageContainer';
+} from "@toolpad/core/DashboardLayout";
+import { PageContainer } from "@toolpad/core/PageContainer";
 
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import Stack from "@mui/material/Stack";
+import Chip from "@mui/material/Chip";
+import TextField from "@mui/material/TextField";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
+import Drawer from "@mui/material/Drawer";
+import { styled, useTheme, useMediaQuery } from "@mui/material";
 
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
-import { createTheme } from '@mui/material/styles';
-import CloudCircleIcon from '@mui/icons-material/CloudCircle';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SearchIcon from '@mui/icons-material/Search';
+import CloudCircleIcon from "@mui/icons-material/CloudCircle";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import SearchIcon from "@mui/icons-material/Search";
+import MenuIcon from "@mui/icons-material/Menu";
+import MenuOpenIcon from "@mui/icons-material/MenuOpen";
+import CloseIcon from "@mui/icons-material/Close";
 
+import { useRightPanel } from "../(dashboard)/contexts/RightPanelContext";
+import { useLeftPanel } from "../(dashboard)/contexts/LeftPanelContext";
 
-import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import CloseIcon from '@mui/icons-material/Close';
-import Toolbar from '@mui/material/Toolbar';
-import MenuIcon from '@mui/icons-material/Menu';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-
-import { styled } from '@mui/material';
-
-import { useRightPanel } from '../(dashboard)/contexts/RightPanelContext';
-import { useLeftPanel } from '../(dashboard)/contexts/LeftPanelContext';
-
-import RagResponse from '../(dashboard)/components/RagResponse';
-import DefaultState from '../(dashboard)/components/DefaultState';
-
-
-
+import RagResponse from "../(dashboard)/components/RagResponse";
+import DefaultStateSidebar from "../(dashboard)/components/DefaultStateSidebar";
 
 const drawerWidth = 600;
 
-const ContentWrapper = styled(Box)(({ theme, isDrawerOpen }) => ({
-  flexGrow: 1,
-  marginRight: isDrawerOpen ? drawerWidth : 0,
-  transition: theme.transitions.create('margin', {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-}));
+const ContentWrapper = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'isDrawerOpen', // Prevent passing `isDrawerOpen` to DOM
+})<{ isDrawerOpen: boolean }>(
+  ({ theme, isDrawerOpen }) => ({
+    flexGrow: 1,
+    marginRight: isDrawerOpen ? drawerWidth : 0,
+    transition: theme.transitions.create("margin", {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  })
+);
 
 const RightDrawer = styled(Drawer)(({ theme }) => ({
   flexShrink: 0,
-  '& .MuiDrawer-paper': {
+  "& .MuiDrawer-paper": {
     width: drawerWidth,
-    boxSizing: 'border-box',
-    transition: theme.transitions.create(['width', 'transform'], {
+    boxSizing: "border-box",
+    transition: theme.transitions.create(["width", "transform"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
@@ -69,10 +59,25 @@ const RightDrawer = styled(Drawer)(({ theme }) => ({
 
 export default function Layout(props: { children: React.ReactNode }) {
   const { isNavigationExpanded, toggleNavigationExpanded } = useLeftPanel();
-  const { isDrawerOpen, setDrawerOpen } = useRightPanel();
-  const handleToggleDrawer = () => setDrawerOpen((prev) => !prev);
-  const { response, setResponse } = useRightPanel();
-  console.log(isDrawerOpen,isNavigationExpanded)
+  const { isDrawerOpen, setDrawerOpen, response } = useRightPanel();
+  const [rightDrawerWidth, setRightDrawerWidth] = React.useState(600);
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.down("lg"));
+const isSmallScreen = useMediaQuery(theme.breakpoints.up("lg"));
+
+React.useEffect(() => {
+  if (isLargeScreen && isDrawerOpen) {
+    // On smaller screens, close the drawer and reduce its width
+    setDrawerOpen(false);
+    setRightDrawerWidth(300);
+  } else if (isSmallScreen && !isDrawerOpen) {
+    // On larger screens, reopen the drawer and reset its width
+    setDrawerOpen(true);
+    setRightDrawerWidth(600);
+  }
+}, [isLargeScreen, isSmallScreen, ]);
+  const handleToggleDrawer = () => setDrawerOpen((prev: boolean) => !prev);
+
   function CustomAppTitle() {
     return (
       <Stack direction="row" alignItems="center" spacing={2}>
@@ -86,17 +91,17 @@ export default function Layout(props: { children: React.ReactNode }) {
     );
   }
 
-  function ToolbarActionsSearch({ onToggleDrawer }) {
+  function ToolbarActionsSearch({ onToggleDrawer }: { onToggleDrawer: () => void }) {
     return (
       <Stack direction="row">
-        <Tooltip  title={isDrawerOpen ? "Collapse menu" : "Expand menu"}>
-        <IconButton  onClick={onToggleDrawer} aria-label="Toggle right drawer">
-          {isDrawerOpen ? (
-            <MenuOpenIcon sx={{ transform: 'scaleX(-1)' }} />
-          ) : (
-            <MenuIcon />
-          )}
-      </IconButton>
+        <Tooltip title={isDrawerOpen ? "Collapse menu" : "Expand menu"}>
+          <IconButton onClick={onToggleDrawer} aria-label="Toggle right drawer">
+            {isDrawerOpen ? (
+              <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} />
+            ) : (
+              <MenuIcon />
+            )}
+          </IconButton>
         </Tooltip>
         <Tooltip title="Search" enterDelay={1000}>
           <div>
@@ -104,7 +109,7 @@ export default function Layout(props: { children: React.ReactNode }) {
               type="button"
               aria-label="search"
               sx={{
-                display: { xs: 'inline', md: 'none' },
+                display: { xs: "inline", md: "none" },
               }}
             >
               <SearchIcon />
@@ -125,51 +130,45 @@ export default function Layout(props: { children: React.ReactNode }) {
               sx: { pr: 0.5 },
             },
           }}
-          sx={{ display: { xs: 'none', md: 'inline-block' }, mr: 1 }}
+          sx={{ display: { xs: "none", md: "inline-block" }, mr: 1 }}
         />
         <ThemeSwitcher />
       </Stack>
     );
   }
+
   return (
-    
-    <DashboardLayout defaultSidebarCollapsed={!isNavigationExpanded} 
-    slots={{
-      appTitle: CustomAppTitle,
-      toolbarActions: () => <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />,
-      // sidebarFooter: SidebarFooter,
-    }}
-    // slotProps={{
-    //   toolbarActions: {
-    //     onToggleDrawer: handleToggleDrawer,
-    //   },
-    // }}
+    <DashboardLayout
+      defaultSidebarCollapsed={!isNavigationExpanded}
+      slots={{
+        appTitle: CustomAppTitle,
+        toolbarActions: () => (
+          <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />
+        ),
+      }}
     >
-      {/* Main Content Area */}
-      <Box sx={{ display: 'flex', height: '100vh', overflow: 'auto' }}>
+      <Box sx={{ display: "flex", height: "100vh", overflow: "auto" }}>
         <ContentWrapper isDrawerOpen={isDrawerOpen}>
-          <PageContainer maxWidth="md">
+          <PageContainer title="" maxWidth="lg">
             {props.children}
           </PageContainer>
         </ContentWrapper>
 
-        {/* Right Drawer */}
         <RightDrawer
           variant="persistent"
           anchor="right"
           open={isDrawerOpen}
           sx={{
-            '& .MuiDrawer-paper': {
-              // borderLeft: `1px solid rgba(0, 0, 0, 0.12)`,
-              boxSizing: 'border-box',
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
             },
           }}
         >
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
               padding: 1,
             }}
           >
@@ -181,14 +180,17 @@ export default function Layout(props: { children: React.ReactNode }) {
             sx={{
               padding: 2,
               flexGrow: 1,
-              overflow: 'auto',
+              overflow: "auto",
             }}
           >
-            { response ? <RagResponse response={response}></RagResponse> : <DefaultState></DefaultState>}
+            {response ? (
+              <RagResponse response={response} />
+            ) : (
+              <DefaultStateSidebar />
+            )}
           </Box>
         </RightDrawer>
       </Box>
     </DashboardLayout>
-    
   );
-}  
+}

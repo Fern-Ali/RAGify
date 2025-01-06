@@ -7,7 +7,6 @@ import { PrismaClient } from "@prisma/client";
 import Grid from '@mui/material/Grid2';
 
 import MessageBox from './MessageBox';
-import AppBottomBar from './AppBottomBar';
 
 import { useNotifications } from '@toolpad/core/useNotifications';
 
@@ -98,6 +97,7 @@ export default function Message({session, response, setResponse}) {
           <p>{response.output?.text}</p> */}
           <MessageBox 
           response={response} 
+          setResponse={setResponse}
           isDrawerOpen={isDrawerOpen} 
           handleSubmit={handleSubmit} 
           query={query}

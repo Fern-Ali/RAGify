@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { github } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { prism as github } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
 import { getGithubRawLink } from "../lib/Helper"
 function FileRenderer({ s3Uri }) {
   const [fileContent, setFileContent] = useState(null);

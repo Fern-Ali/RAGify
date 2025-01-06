@@ -77,7 +77,10 @@ export default function RAGResponse({ response }) {
       <Typography variant="body1" sx={{p:3}}>{output.text}</Typography> */}
       
       {/* Supporting Citations */}
-      <FormControlLabel control={<Switch checked={showInsights} onChange={handleSwitchChange} />} label={`Show ${Object.keys(citations).length} Response Insights`} />
+      <Typography variant="caption"  sx={{mr:1}} color="success">LLama 3.3 70b Instruct</Typography>
+      <Typography variant="caption"  sx={{mr:1}} color="text.secondary">|</Typography>
+      <Typography variant="caption"  sx={{mr:1}} color="primary">{`${Object.keys(citations).length} Response Insights`}</Typography>
+      {/* <FormControlLabel control={<Switch checked={showInsights} onChange={handleSwitchChange} />} label={`${Object.keys(citations).length} Response Insights`} /> */}
       {showInsights ? <React.Fragment>
       {/* <Typography variant="h6" sx={{ p:2 }}>Agent Insights:</Typography> */}
       <DynamicGrid citations={citations} />
