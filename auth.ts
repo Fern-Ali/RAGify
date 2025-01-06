@@ -15,7 +15,7 @@ const providers: Provider[] = [Credentials({
     if (c.password !== '@demo1') {
       return null;
     }
-
+    
     const email = String(c.email);
     const name = c.username? c.username: email.split("@")[0]
 
@@ -67,6 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   
       
   secret: process.env.AUTH_SECRET,
+  
   pages: {
     signIn: '/auth/signin',
   },
@@ -110,5 +111,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return false; // Redirect unauthenticated users to login page
     },
   },
+  logger: {
+    error: (code, ...metadata) => {
+      console.error(`[NextAuth][Error][${code}]`, metadata);
+    },
+    warn: (code) => {
+      console.warn(`[NextAuth][Warning][${code}]`);
+    },
+    debug: (code, ...metadata) => {
+      console.debug(`[NextAuth][Debug][${code}]`, metadata);
+    },
+  },
+  // debug: true, // Enable debug mode for additional logs
+  trustHost: true,
 });
   

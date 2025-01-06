@@ -27,7 +27,7 @@ export function LeftPanelProvider({ children }) {
 
     toggleButton.addEventListener('click', handleClick);
     return () => toggleButton.removeEventListener('click', handleClick); // Cleanup on unmount
-  }, []);
+  }, [isNavigationExpanded]);
 
   return (
     <LeftPanelContext.Provider value={{ isNavigationExpanded, leftPanelWidth }}>
