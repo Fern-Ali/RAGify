@@ -98,6 +98,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.user.email = token.email as string;
       session.user.name = token.name as string;
       session.user.sessionId = token.sessionId as string; // Attach session ID
+      // if (true) {
+      //   return null;
+      // }
       return session;
     },
     authorized({ auth: session, request: { nextUrl } }) {

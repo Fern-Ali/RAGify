@@ -159,7 +159,7 @@ export default function Features() {
   const selectedFeature = items[selectedItemIndex];
 
   return (
-    <Container id="features" sx={{ py: { xs: 0, sm: 0 } }}>
+    <Container id="features" sx={{ maxWidth: "90vw",py: { xs: 0, sm: 0 } }}>
       <Box sx={{ width: { sm: '100%', md: '60%' } }}>
         <Typography
           component="h2"
@@ -172,7 +172,7 @@ export default function Features() {
             variant="contained"
             size="small"
             href="/rag/models?sampleQuery=What is mui toolpad? How can I use it to enhance my workflows?" 
-            sx={{ml: 2}}   
+            sx={{ml: {xs:8, sm:2} }}   
             endIcon={<AlarmOnIcon />}        
             >
             QuickStart

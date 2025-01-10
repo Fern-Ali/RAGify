@@ -57,6 +57,7 @@ const RightDrawer = styled(Drawer)(({ theme }) => ({
   },
 }));
 
+
 export default function Layout(props: { children: React.ReactNode }) {
   const { isNavigationExpanded, toggleNavigationExpanded } = useLeftPanel();
   const { isDrawerOpen, setDrawerOpen, response } = useRightPanel();
@@ -80,11 +81,11 @@ React.useEffect(() => {
 
   function CustomAppTitle() {
     return (
-      <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack direction="row" alignItems="center"  spacing={2}>
         <CloudCircleIcon fontSize="large" color="primary" />
         <Typography variant="h6">Ragify</Typography>
-        <Chip size="small" label="beta" color="secondary" />
-        <Tooltip title="Connected to production">
+        <Chip size="small" label="beta" color="secondary" sx={{ display: { xs: "none", md: "inline-block" }}}/>
+        <Tooltip title="Connected to production" sx={{ display: { xs: "none", md: "inline-block" }}}>
           <CheckCircleIcon color="success" fontSize="small" />
         </Tooltip>
       </Stack>
@@ -104,12 +105,12 @@ React.useEffect(() => {
           </IconButton>
         </Tooltip>
         <Tooltip title="Search" enterDelay={1000}>
-          <div>
+          <div >
             <IconButton
               type="button"
               aria-label="search"
               sx={{
-                display: { xs: "inline", md: "none" },
+                display: { xs: "none", md: "none" },
               }}
             >
               <SearchIcon />
