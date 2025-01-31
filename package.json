@@ -1,5 +1,5 @@
 {
-    "name": "learn_app_router",
+    "name": "ragify",
     "version": "0.1.0",
     "scripts": {
         "dev": "next dev",
@@ -13,11 +13,14 @@
         "@emotion/react": "^11",
         "@emotion/styled": "^11",
         "@mui/icons-material": "^6",
+        "@mui/lab": "6.0.0-beta.25",
         "@mui/material": "^6",
         "@mui/material-nextjs": "^6",
         "@prisma/client": "^6.1.0",
         "@toolpad/core": "0.11.0",
-        "aws-sdk": "^2.1692.0",
+        "@aws-sdk/client-s3": "^3.0.0",
+        "@aws-sdk/client-dynamodb": "^3.0.0",
+        "@aws-sdk/client-sqs": "^3.0.0",
         "next": "^15",
         "next-auth": "5.0.0-beta.25",
         "react": "^18",
@@ -29,7 +32,7 @@
         "@types/node": "^20",
         "@types/react": "^18",
         "@types/react-dom": "^18",
-        "eslint": "^8",
+        "eslint": "^9",
         "eslint-config-next": "^15",
         "prisma": "^6.1.0",
         "typescript": "^5"

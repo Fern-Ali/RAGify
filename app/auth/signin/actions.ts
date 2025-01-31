@@ -16,7 +16,7 @@ export default async function serverSignIn(provider: AuthProvider, formData: For
     }
     if (error instanceof AuthError) {
       return {
-        error: error.type === 'CredentialsSignin' ? 'Invalid credentials.' : 'An error with Auth.js occurred.',
+        error: error.type === 'CredentialsSignin' ? 'Invalid credentials.' : 'An error with Auth.ts occurred.',
         type: error.type,
       };
     }
