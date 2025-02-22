@@ -1,4 +1,5 @@
-
+# scripts
+set_default_pw.js
 # Logs
 logs
 *.log
