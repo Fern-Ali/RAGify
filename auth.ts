@@ -2,52 +2,65 @@ import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import type { Provider } from 'next-auth/providers';
 import { PrismaClient } from "@prisma/client";
-
+import bcrypt from "bcryptjs"; // Import bcrypt for password hashing
+// // @demo1
 const prisma = new PrismaClient();
 
-const providers: Provider[] = [Credentials({
-  credentials: {
-    email: { label: 'Email Address', type: 'email' },
-    username: { label: 'Username', type: 'text' },
-    password: { label: 'Password', type: 'password' },
-  },
-  authorize: async (c) => {
-    if (c.password !== '@demo1') {
-      return null;
-    }
-    
-    const email = String(c.email);
-    const name = c.username? c.username: email.split("@")[0]
+const providers: Provider[] = [
+  Credentials({
+    credentials: {
+      email: { label: "Email Address", type: "email" },
+      username: { label: "Username", type: "text" },
+      password: { label: "Password", type: "password" },
+    },
+    authorize: async (credentials) => {
+      const email = String(credentials.email);
+      const password = String(credentials.password);
+      const name = credentials.username ? credentials.username : email.split("@")[0];
 
-    // Check if the user exists in the database
-  let user = await prisma.user.findUnique({
-    where: { email },
-  });
+      // **Check if the user exists in the database**
+      let user = await prisma.user.findUnique({
+        where: { email },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          password: true,  // ✅ Explicitly include password
+        },
+      });
 
-  // If the user exists, log in and add existing user to session via callback
-  if (user){
-    console.log(`Existing user found: ${user}`)
-  }
-  // If the user doesn't exist, create a new one
-  if (!user) {
-    user = await prisma.user.create({
-      data: {
-        name: name.toString(),
-        email: email,
-      },
-    });
-    console.log(`New user created: ${email}`);
-  }
+      if (user) {
+        console.log(`Existing user found: ${user.email}`);
 
-  return {
-    // id: user.id.toString(),
-    id: user.id.toString(),
-    name: user.name,
-    email: user.email,
-    sessionId: null, // Can update with actual session logic
-  };
-  },
-}),
+        // **Compare hashed password**
+        const passwordMatch = await bcrypt.compare(password, user.password);
+
+        if (!passwordMatch) {
+          console.error("Invalid password attempt.");
+          throw new Error("Invalid credentials.");
+        }
+      } else {
+        // **New User: Hash password and store in DB**
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("Hashed Password:", hashedPassword);
+        user = await prisma.user.create({
+          data: {
+            name: name.toString(),
+            email: email,
+            password: hashedPassword, // Store hashed password
+          },
+        });
+
+        console.log(`New user created: ${email}`);
+      }
+
+      return {
+        id: user.id.toString(),
+        name: user.name,
+        email: user.email,
+      };
+    },
+  }),
 ];
 
 
@@ -77,7 +90,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.sessionId = user.sessionId; // Add sessionId to the token
+        token.sessionId = 0; // Add sessionId to the token
       }
 
       // Fetch the sessionId from the API route
