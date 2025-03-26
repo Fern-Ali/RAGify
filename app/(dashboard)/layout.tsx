@@ -63,8 +63,8 @@ export default function Layout(props: { children: React.ReactNode }) {
   const { isDrawerOpen, setDrawerOpen, response } = useRightPanel();
   const [rightDrawerWidth, setRightDrawerWidth] = React.useState(600);
   const theme = useTheme();
-  const isLargeScreen = useMediaQuery(theme.breakpoints.down("lg"));
-const isSmallScreen = useMediaQuery(theme.breakpoints.up("lg"));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.down("xl"));
+const isSmallScreen = useMediaQuery(theme.breakpoints.up("xl"));
 
 React.useEffect(() => {
   if (isLargeScreen && isDrawerOpen) {

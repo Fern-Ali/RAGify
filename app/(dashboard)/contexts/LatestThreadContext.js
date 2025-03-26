@@ -1,8 +1,8 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma"; 
+
 
 // Define the context
 const LatestThreadContext = createContext(null);

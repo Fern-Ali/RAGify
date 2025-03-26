@@ -24,6 +24,12 @@ import { useTheme } from '@mui/material/styles';
 
 import { useSearchParams } from 'next/navigation';
 
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 
 function SelectActionCard({
     response,
@@ -83,6 +89,15 @@ function SelectActionCard({
       hour12: true, // e.g., 'AM/PM' format
     });
   }
+  function closeUnclosedCodeBlocks(text) {
+    const backticks = (text.match(/```/g) || []).length;
+    if (backticks % 2 !== 0) {
+      return `${text.trim()}\n\`\`\``;
+    }
+    return text;
+  }
+  
+  
   return (
     <Box
       sx={{
@@ -99,17 +114,18 @@ function SelectActionCard({
          
          <React.Fragment key={card.id} >
             
-            <Grid container sx={{width: "100%", justifyContent: "left",}}>         
-            {card.sender == "USER" ? <Grid size={"grow"} sx={{border: "", display: { xs: "none", md: "inline" }}}></Grid> : null}
-            <Grid size={"grow"} sx={{ maxWidth: card.sender == "MODEL" ? "100%":"100%"}}>
+            <Grid container sx={{width: "100%", justifyContent: "left", }}>         
+            {card.sender == "USER" ? <Grid size={"grow"}  sx={{border: "", display: { xs: "none", lg: "inline" }}}></Grid> : null}
+            <Grid size={"grow"} sx={{ border: "", maxWidth: card.sender == "MODEL" ? "100%":"100%"}}>
             <Card 
             key={card.id}  
             sx={{
-                width: { xs: "100%", md: "fit-content" }, 
+                width: { xs: "100%", md: "100%" },
                 borderRadius: "10px", 
                 backgroundColor: card.sender == "MODEL" ? theme.palette.background.default:""
                 }}>
             <CardActionArea
+            disableRipple
                 onClick={() => {
                     setSelectedCard(index);
                     if (card.metadata) {
@@ -145,9 +161,69 @@ function SelectActionCard({
                <Typography sx={{p:1}} variant="caption" color={card.sender == "USER" ? theme.palette.primary.main : theme.palette.success.main}>
                  {card.sender == "MODEL" ? "Llama 3.3 70B Instruct":"You"}
                </Typography>
-               <Typography sx={{p:1}} variant="body2" color="text.secondary">
-                 {card.text}
-               </Typography>
+               {/* <Typography sx={{p:1}} variant="body2" color="text.secondary"> */}
+                 {/* {card.text} */}
+                 {
+                  <ReactMarkdown
+                  
+                  rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                  components={{
+                    pre({ children, ...props }) {
+                      return (
+                        <Box
+                          component="pre"
+                          sx={{
+                            backgroundColor: theme.palette.background.paper,
+                            overflowX: "auto",
+                            padding: "1em",
+                            borderRadius: "10px",
+                            maxWidth: { xs: "300px", sm: "500px", md: "800px", lg: "md", xl: "lg" },
+                            mx: "auto",
+                            justifyContent: "center"
+                          }}
+                          {...props}
+                        >
+                          {children}
+                        </Box>
+                      );
+                    },
+                    code({ node, inline, className, children, ...props }) {
+                      const match = /language-(\w+)/.exec(className || "");
+                      return !inline && match ? (
+                        <SyntaxHighlighter
+                          style={theme.palette.mode === "dark" ? oneDark : oneLight}
+                          language={match[1]}
+                          PreTag="div"
+                          customStyle={{
+                            background: "none",
+                            borderRadius: 10,
+                            padding: "1em",
+                            overflowX: "auto",
+                            maxWidth: "100%",
+                          }}
+                          {...props}
+                        >
+                          {String(children).replace(/\n$/, "")}
+                        </SyntaxHighlighter>
+                      ) : (
+                        <code
+                          style={{
+                            backgroundColor: theme.palette.action.hover,
+                            padding: "2px 4px",
+                            borderRadius: 4,
+                            fontSize: "0.9em",
+                            
+                          }}
+                          {...props}
+                        >
+                          {children}
+                        </code>
+                      );
+                    },
+                  }}
+                >{closeUnclosedCodeBlocks(card.text)}</ReactMarkdown>
+                 }
+               {/* </Typography> */}
                <Typography sx={{p:1}} variant="caption" color={card.sender == "USER" ? "primary" : "success"}>
                  {formatDate(card.createdAt)}
                </Typography>
@@ -286,12 +362,16 @@ function SelectActionCard({
             marginRight: 2 
           }}
         />
+        {!error && 
         <Button type="submit" variant="contained"  disabled={loadingBedrock}>
-          {loadingBedrock ? "Loading..." : "Send"}
-        </Button>
+        {loadingBedrock ? "Loading..." : "Send"}
+        </Button> }
+        
       {/* </form> */}
       
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      {error && <Button type="submit" variant="contained" color="red" disabled={loadingBedrock}>
+          {error}
+        </Button>}
       </Box>
       </Paper>
         
