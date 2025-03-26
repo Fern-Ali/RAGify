@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { useState } from "react";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 
 
 import Grid from '@mui/material/Grid2';
@@ -12,9 +12,6 @@ import { useNotifications } from '@toolpad/core/useNotifications';
 
 import { useRightPanel } from '../contexts/RightPanelContext';
 import { useLeftPanel } from '../contexts/LeftPanelContext';
-const prisma = new PrismaClient();
-
-
 
 export default function Message({session, response, setResponse}) {
   const [query, setQuery] = useState(""); // State for the input query
@@ -46,18 +43,29 @@ export default function Message({session, response, setResponse}) {
 
         await new Promise((resolve) => setTimeout(resolve, 3000)); // Simulate a delay for the notification
 
-        // Make the API request
-        const res = await fetch("/api/bedrock", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                inputText: query, // Pass the query to the AWS BEDROCK API
-                sessionId, // Dynamically use the sessionId or null
-            }),
+        // Make the API request BEDROCK KNOWLEDGEBASE
+        // const res = await fetch("/api/bedrock", {
+        //     method: "POST",
+        //     headers: {
+        //         "Content-Type": "application/json",
+        //     },
+        //     body: JSON.stringify({
+        //         inputText: query, // Pass the query to the AWS BEDROCK API
+        //         sessionId, // Dynamically use the sessionId or null
+        //     }),
+        // });
+        // Make the API request BEDROCK FM INFERENCE
+        const res = await fetch("/api/fm", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            inputText: query,
+            modelName: "meta.llama3-3-70b-instruct-v1:0",
+            sessionId: sessionId, 
+          }),
         });
-
         if (!res.ok) {
             throw new Error("Failed to fetch response from Bedrock");
         }

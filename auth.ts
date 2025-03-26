@@ -1,10 +1,9 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import type { Provider } from 'next-auth/providers';
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "./app/(dashboard)/lib/prisma";
 import bcrypt from "bcryptjs"; // Import bcrypt for password hashing
 // // @demo1
-const prisma = new PrismaClient();
 
 const providers: Provider[] = [
   Credentials({
@@ -34,7 +33,7 @@ const providers: Provider[] = [
 
         // **Compare hashed password**
         const passwordMatch = await bcrypt.compare(password, user.password);
-
+        
         if (!passwordMatch) {
           console.error("Invalid password attempt.");
           throw new Error("Invalid credentials.");
@@ -58,6 +57,7 @@ const providers: Provider[] = [
         id: user.id.toString(),
         name: user.name,
         email: user.email,
+        sessionId: null,
       };
     },
   }),
@@ -90,7 +90,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.sessionId = 0; // Add sessionId to the token
+        token.sessionId = user.sessionId; // Add sessionId to the token
       }
 
       // Fetch the sessionId from the API route

@@ -21,7 +21,7 @@ const DynamicGrid = ({ citations }) => {
   return (
     <Grid2 container spacing={2} display="flex" justifyContent="center" alignItems="center" size="grow">
       {/* First Row: Single Full-Width Paper */}
-      {citations.map((citation, index) => (
+      {citations && citations.map((citation, index) => (
         <React.Fragment key={index}>
           
         <Grid2 size={{xs:12, sm:12, md:12, lg:12}} >
@@ -79,7 +79,7 @@ export default function RAGResponse({ response }) {
       {/* Supporting Citations */}
       <Typography variant="caption"  sx={{mr:1}} color="success">LLama 3.3 70b Instruct</Typography>
       <Typography variant="caption"  sx={{mr:1}} color="text.secondary">|</Typography>
-      <Typography variant="caption"  sx={{mr:1}} color="primary">{`${Object.keys(citations).length} Response Insights`}</Typography>
+      <Typography variant="caption"  sx={{mr:1}} color="primary">{`${citations ? Object.keys(citations).length : 0} Response Insights`}</Typography>
       {/* <FormControlLabel control={<Switch checked={showInsights} onChange={handleSwitchChange} />} label={`${Object.keys(citations).length} Response Insights`} /> */}
       {showInsights ? <React.Fragment>
       {/* <Typography variant="h6" sx={{ p:2 }}>Agent Insights:</Typography> */}

@@ -3,11 +3,10 @@ import {
   RetrieveAndGenerateCommand,
 } from "@aws-sdk/client-bedrock-agent-runtime";
 
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../(dashboard)/lib/prisma"; 
 import { auth } from "../../../auth";
 import { NextResponse } from "next/server";
 
-const prisma = new PrismaClient();
 
 export async function POST(req) {
   try {
