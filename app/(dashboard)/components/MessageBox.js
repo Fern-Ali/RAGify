@@ -177,7 +177,7 @@ function SelectActionCard({
                             overflowX: "auto",
                             padding: "1em",
                             borderRadius: "10px",
-                            maxWidth: { xs: "300px", sm: "560px", md: "800px", lg: "md", xl: "lg" },
+                            maxWidth: { xs: "300px", sm: "500px", md: "800px", lg: "md", xl: "lg" },
                             mx: "auto",
                             justifyContent: "center"
                           }}
@@ -221,7 +221,7 @@ function SelectActionCard({
                       );
                     },
                   }}
-                />
+                ></ReactMarkdown>
                  }
                {/* </Typography> */}
                <Typography sx={{p:1}} variant="caption" color={card.sender == "USER" ? "primary" : "success"}>
