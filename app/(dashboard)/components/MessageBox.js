@@ -165,7 +165,7 @@ function SelectActionCard({
                  {/* {card.text} */}
                  {
                   <ReactMarkdown
-                  children={closeUnclosedCodeBlocks(card.text)}
+                  
                   rehypePlugins={[rehypeRaw, rehypeSanitize]}
                   components={{
                     pre({ children, ...props }) {
@@ -221,7 +221,7 @@ function SelectActionCard({
                       );
                     },
                   }}
-                ></ReactMarkdown>
+                >{closeUnclosedCodeBlocks(card.text)}</ReactMarkdown>
                  }
                {/* </Typography> */}
                <Typography sx={{p:1}} variant="caption" color={card.sender == "USER" ? "primary" : "success"}>
