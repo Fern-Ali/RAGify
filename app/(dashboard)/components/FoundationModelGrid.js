@@ -36,6 +36,7 @@ const columns = [
 export default function FoundationModelGrid() {
   const [rows, setRows] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [rowSelectionModel, setRowSelectionModel] = React.useState([]);
   const isMobile = useMediaQuery('(max-width:600px)');
   React.useEffect(() => {
     const fetchModels = async () => {
@@ -66,6 +67,10 @@ export default function FoundationModelGrid() {
         : <DataGrid
         rows={rows}
         checkboxSelection
+        onRowSelectionModelChange={(newRowSelectionModel) => {
+          setRowSelectionModel(newRowSelectionModel);
+        }}
+        rowSelectionModel={rowSelectionModel}
         columns={columns}
         loading={loading}
         slots={{ toolbar: GridToolbar }}

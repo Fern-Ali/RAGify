@@ -39,7 +39,7 @@ export const LatestThreadProvider = ({ userId, response, children }) => {
   }, [userId, response]);
 
   return (
-    <LatestThreadContext.Provider value={{ latestThread, loading }}>
+    <LatestThreadContext.Provider value={{ latestThread, loading, setLatestThread }}>
       {children}
     </LatestThreadContext.Provider>
   );

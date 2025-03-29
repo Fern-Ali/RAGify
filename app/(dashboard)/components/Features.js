@@ -9,6 +9,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 
 import { styled } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 
 import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded';
 import EdgesensorHighRoundedIcon from '@mui/icons-material/EdgesensorHighRounded';
@@ -24,7 +25,9 @@ import DevicesOutlined from '@mui/icons-material/DevicesOutlined';
 import ScreenShareOutlined from '@mui/icons-material/ScreenShareOutlined';
 import CloudOutlined from '@mui/icons-material/CloudOutlined';
 import AlarmOnIcon from '@mui/icons-material/AlarmOn';
-
+import GitHubIcon from '@mui/icons-material/GitHub';
+import SourceIcon from '@mui/icons-material/Source';
+import MarkUnreadChatAltIcon from '@mui/icons-material/MarkUnreadChatAlt';
 import Disclaimer from './Disclaimer';
 
 const descriptionOne = `Combine real-time knowledge retrieval with AI-powered conversation. RAGify's dashboard provides a clear view of your queries, responses, and the AI's citation sources. `;
@@ -95,6 +98,7 @@ function MobileLayout({ selectedItemIndex, handleItemClick, selectedFeature }) {
             label={title}
             onClick={() => handleItemClick(index)}
             selected={selectedItemIndex === index}
+            sx={{mb:2}}
           />
         ))}
       </Box>
@@ -157,31 +161,56 @@ export default function Features() {
   };
 
   const selectedFeature = items[selectedItemIndex];
-
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === 'dark';
   return (
     <Container id="features" sx={{ maxWidth: "90vw",py: { xs: 0, sm: 0 } }}>
-      <Box sx={{ width: { sm: '100%', md: '60%' } }}>
+      <Box sx={{ width: { sm: '100%', md: '100%' } }}>
         <Typography
           component="h2"
           variant="h4"
           gutterBottom
-          sx={{ color: 'text.primary' }}
+          sx={{ color: 'text.primary',  }}
         >
           Welcome to Ragify
-          <Button
+          
+        </Typography>
+        <Button
             variant="contained"
             size="small"
-            href="/rag/models?sampleQuery=What is mui toolpad? How can I use it to enhance my workflows?" 
-            sx={{ml: {xs:8, sm:2} }}   
-            endIcon={<AlarmOnIcon />}        
+            href="/rag/models?sampleQuery=What is mui toolpad? How can I use it to enhance my workflows?"            
+            sx={(theme) => ({ml: {xs:0, sm:0}, mr:1, mb:1, backgroundColor: theme.palette.primary.main})}    
+            endIcon={<MarkUnreadChatAltIcon />}        
             >
-            QuickStart
+            Chat
         </Button>
-        </Typography>
-        
+        <Button
+            component="a"
+            variant="contained"
+            size="small"
+            href="https://github.com/Fern-Ali/RAGify"
+            target="_blank"
+            rel="noopener noreferrer" 
+            sx={(theme) => ({ml: {xs:0, sm:0}, mr:1, mb:1, backgroundColor: theme.palette.secondary.main})}   
+            endIcon={<GitHubIcon />}        
+            >
+            Github
+        </Button>
+        <Button
+            component="a"
+            variant="contained"
+            size="small"
+            href="https://github.com/Fern-Ali/RAGify/wiki"
+            target="_blank"
+            rel="noopener noreferrer" 
+            sx={(theme) => ({ml: {xs:0, sm:0}, mr:1, mb:1, backgroundColor: theme.palette.info.main})}   
+            endIcon={<SourceIcon />}        
+            >
+            Wiki
+        </Button>
         <Typography
           variant="body1"
-          sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 } }}
+          sx={{ color: 'text.secondary', mb: { xs: 2, sm: 4 }, mt: 1 }}
         >
           
            Stay informed and in control of your knowledge retrieval journey with Retrieval-Augmented Generation (RAG).

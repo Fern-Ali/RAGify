@@ -2,7 +2,7 @@ import * as React from 'react';
 import Typography from '@mui/material/Typography';
 import { auth } from '../../auth';
 import DefaultState from './components/DefaultState';
-
+import FoundationModelGrid from './components/FoundationModelGrid';
 
 
 export default async function HomePage() {
@@ -14,6 +14,7 @@ export default async function HomePage() {
         {/* {session?.user?.name || 'User'} */}
       </Typography>
       <DefaultState></DefaultState>
+      
       </React.Fragment>
   );
 }

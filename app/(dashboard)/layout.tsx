@@ -29,8 +29,9 @@ import { useLeftPanel } from "../(dashboard)/contexts/LeftPanelContext";
 
 import RagResponse from "../(dashboard)/components/RagResponse";
 import DefaultStateSidebar from "../(dashboard)/components/DefaultStateSidebar";
+import AutoCompleteModel from "../(dashboard)/components/AutoCompleteModel";
 
-const drawerWidth = 600;
+const drawerWidth = 400;
 
 const ContentWrapper = styled(Box, {
   shouldForwardProp: (prop) => prop !== 'isDrawerOpen', // Prevent passing `isDrawerOpen` to DOM
@@ -82,8 +83,8 @@ React.useEffect(() => {
   function CustomAppTitle() {
     return (
       <Stack direction="row" alignItems="center"  spacing={2}>
-        <CloudCircleIcon fontSize="large" color="primary" />
-        <Typography variant="h6">Ragify</Typography>
+        <CloudCircleIcon fontSize="large" color="primary" sx={{ display: { xs: "none", md: "inline-block" }}}  />
+        <Typography variant="h6" sx={{ display: { xs: "none", md: "inline-block" }}}>Ragify</Typography>
         <Chip size="small" label="beta" color="secondary" sx={{ display: { xs: "none", md: "inline-block" }}}/>
         <Tooltip title="Connected to production" sx={{ display: { xs: "none", md: "inline-block" }}}>
           <CheckCircleIcon color="success" fontSize="small" />
@@ -138,19 +139,50 @@ React.useEffect(() => {
     );
   }
 
+  function NavigationBarItems({ onToggleDrawer }: { onToggleDrawer: () => void }) {
+    return (
+      <Stack direction="row">
+        <Tooltip title={isDrawerOpen ? "Collapse menu" : "Expand menu"} sx={{ display: { xs: "none", md: "inline-block" }}}>
+          <IconButton onClick={onToggleDrawer} aria-label="Toggle right drawer">
+            {isDrawerOpen ? (
+              <MenuOpenIcon sx={{ transform: "scaleX(-1)" }} />
+            ) : (
+              <MenuIcon />
+            )}
+          </IconButton>
+        </Tooltip>
+        <AutoCompleteModel />
+        <ThemeSwitcher />
+      </Stack>
+    );
+  }
+
+  function SidebarFooter({ mini }: SidebarFooterProps) {
+    return (
+      <Typography
+        variant="caption"
+        sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
+      >
+        {mini ? '© RAGify' : `© ${new Date().getFullYear()} Made with love by Alicia`}
+      </Typography>
+    );
+  }
+
   return (
     <DashboardLayout
       defaultSidebarCollapsed={!isNavigationExpanded}
       slots={{
         appTitle: CustomAppTitle,
+        // sidebarFooter: SidebarFooter,
         toolbarActions: () => (
-          <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />
+          // <ToolbarActionsSearch onToggleDrawer={handleToggleDrawer} />
+          <NavigationBarItems onToggleDrawer={handleToggleDrawer} />
         ),
       }}
     >
       <Box sx={{ display: "flex", height: "100vh", overflow: "auto" }}>
         <ContentWrapper isDrawerOpen={isDrawerOpen}>
-          <PageContainer title="" maxWidth="lg">
+          <PageContainer title="" maxWidth="md">
             {props.children}
           </PageContainer>
         </ContentWrapper>

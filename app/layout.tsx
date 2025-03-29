@@ -6,7 +6,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CoffeeIcon from '@mui/icons-material/Coffee';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import HubIcon from '@mui/icons-material/Hub';
-
+import Chip from '@mui/material/Chip';
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
 import { auth } from '../auth';
@@ -14,6 +14,7 @@ import theme from '../theme';
 
 import { RightPanelProvider } from '../app/(dashboard)/contexts/RightPanelContext';
 import { LeftPanelProvider } from '../app/(dashboard)/contexts/LeftPanelContext';
+
 
 const NAVIGATION: Navigation = [
   {
@@ -25,16 +26,22 @@ const NAVIGATION: Navigation = [
     title: 'Dashboard',
     icon: <DashboardIcon />,
   },
-  // {
-  //   segment: 'orders',
-  //   title: 'Orders',
-  //   icon: <ShoppingCartIcon />,
-  // },
+  {
+    segment: 'playground',
+    title: 'PlayGround',
+    icon: <ShoppingCartIcon />,
+  },
+
   {
     segment: 'rag',
     title: 'RAG House',
     icon: <CoffeeIcon />,
+    action: <Chip label={12} color="success" size="small" />,
     children: [
+      {
+        kind: 'header',
+        title: 'Chat History',
+      },
       {
         segment: 'models',
         title: 'Llama3.3',
@@ -42,10 +49,13 @@ const NAVIGATION: Navigation = [
       },
     ]
   },
+  // {
+  //   kind: 'divider',
+  // }
 ];
 
 const BRANDING = {
-  title: 'MUI Guru',
+  title: 'RAGify',
 };
 
 

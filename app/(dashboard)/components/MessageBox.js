@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 import CardActions from '@mui/material/CardActions';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShareIcon from '@mui/icons-material/Share';
 import IconButton from '@mui/material/IconButton';
@@ -46,10 +47,10 @@ function SelectActionCard({
   const [thread, setThread] = React.useState(null);
   const [favoritedCards, setFavoritedCards] = React.useState([]); // Array of favorited card IDs
 
-  const { latestThread, loading } = useLatestThread();
+  const { latestThread, loading, setLatestThread } = useLatestThread();
   const searchParams = useSearchParams();
   const theme = useTheme();
-  const drawerWidth = 600;
+  const drawerWidth = 400;
   const notifications = useNotifications();
   
     // Ref for the container to enable auto-scrolling
@@ -96,6 +97,25 @@ function SelectActionCard({
     }
     return text;
   }
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+  
+      if (res.ok) {
+        // Animate removal or refetch thread
+        setLatestThread(prev => ({
+          ...prev,
+          messages: prev.messages.filter((msg) => msg.id !== id),
+        }));
+      } else {
+        notifications.show(data.error || 'Failed to delete message', { severity: 'error' });
+      }
+    } catch (err) {
+      console.error(err);
+      notifications.show('Something went wrong', { severity: 'error' });
+    }
+  };
   
   
   return (
@@ -114,13 +134,14 @@ function SelectActionCard({
          
          <React.Fragment key={card.id} >
             
-            <Grid container sx={{width: "100%", justifyContent: "left", }}>         
-            {card.sender == "USER" ? <Grid size={"grow"}  sx={{border: "", display: { xs: "none", lg: "inline" }}}></Grid> : null}
+            <Grid container sx={{width: "100%", justifyContent: "center", }}>         
+            {/* {card.sender == "USER" ? <Grid size={"grow"}  sx={{border: "", display: { xs: "none", lg: "inline" }}}></Grid> : null} */}
             <Grid size={"grow"} sx={{ border: "", maxWidth: card.sender == "MODEL" ? "100%":"100%"}}>
             <Card 
             key={card.id}  
             sx={{
                 width: { xs: "100%", md: "100%" },
+                // maxWidth: { xs: "xs", sm: "sm", md: "md", lg: "md", xl: "lg" },
                 borderRadius: "10px", 
                 backgroundColor: card.sender == "MODEL" ? theme.palette.background.default:""
                 }}>
@@ -177,7 +198,7 @@ function SelectActionCard({
                             overflowX: "auto",
                             padding: "1em",
                             borderRadius: "10px",
-                            maxWidth: { xs: "300px", sm: "500px", md: "800px", lg: "md", xl: "lg" },
+                            maxWidth: { xs: "300px", sm: "500px", md: "800px", lg: "900", xl: "1100" },
                             mx: "auto",
                             justifyContent: "center"
                           }}
@@ -244,7 +265,10 @@ function SelectActionCard({
                             : theme.palette.action.disabled,
                         }}
                     />
+                    
                 </IconButton>
+                
+
                  <IconButton 
                  size="small" 
                  aria-label="copy" 
@@ -264,7 +288,47 @@ function SelectActionCard({
                      <ShareIcon size="small" />
                  </IconButton>
                  
-                 </CardActions> : null}
+                 </CardActions> : <CardActions disableSpacing>
+                <IconButton
+                    size="small"
+                    aria-label="add to favorites"
+                    onClick={() => toggleFavorite(card.id)} // Toggle favorite
+                    >
+                    <FavoriteIcon
+                        size="small"
+                        sx={{
+                        color: favoritedCards.includes(card.id)
+                            ? theme.palette.error.main // Highlighted when favorited
+                            : theme.palette.action.disabled,
+                        }}
+                    />
+                </IconButton>
+                
+
+                 <IconButton 
+                 size="small" 
+                 aria-label="copy" 
+                 onClick={() => {
+                    // Copy text to clipboard
+                    navigator.clipboard.writeText(card.text);
+
+                    // Show notification
+                    notifications.show('Message copied to clipboard!', {
+                        severity: 'success', // Adjust severity (success, error, warning, info)
+                        autoHideDuration: 3000, // Notification duration
+                    });
+                    }}>
+                    <ContentCopyIcon size="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  aria-label="delete"
+                  onClick={() => handleDelete(card.id)}
+                >
+                  <DeleteIcon />
+                </IconButton>
+                 
+                 </CardActions>}
          </Card> 
                 </Grid>
 
@@ -309,6 +373,7 @@ function SelectActionCard({
           bottom: 0,
           left: {
             xs: 0,
+            sm: 64,
             md: (isNavigationExpanded ? 320 : 64)
           },
           margin: "0 auto",
