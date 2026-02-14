@@ -31,7 +31,7 @@ export function McpProvider({ children }) {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch tools');
+        throw new Error(`Failed to fetch tools: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -73,7 +73,7 @@ export function McpProvider({ children }) {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();
@@ -117,7 +117,7 @@ export function McpProvider({ children }) {
       });
       
       if (!response.ok) {
-        throw new Error('Failed to execute tool');
+        throw new Error(`Failed to execute tool '${toolName}': ${response.status} ${response.statusText}`);
       }
       
       const data = await response.json();

@@ -53,6 +53,7 @@ export default function McpToolsSidebar() {
     };
     
     loadTools();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTools]);
 
   if (isLoading && tools.length === 0) {
