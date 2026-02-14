@@ -6,6 +6,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import CoffeeIcon from '@mui/icons-material/Coffee';
 import ModelTrainingIcon from '@mui/icons-material/ModelTraining';
 import HubIcon from '@mui/icons-material/Hub';
+import ExtensionIcon from '@mui/icons-material/Extension';
 
 import type { Navigation } from '@toolpad/core/AppProvider';
 import { SessionProvider, signIn, signOut } from 'next-auth/react';
@@ -14,6 +15,7 @@ import theme from '../theme';
 
 import { RightPanelProvider } from '../app/(dashboard)/contexts/RightPanelContext';
 import { LeftPanelProvider } from '../app/(dashboard)/contexts/LeftPanelContext';
+import { McpProvider } from '../app/(dashboard)/contexts/McpContext';
 
 const NAVIGATION: Navigation = [
   {
@@ -42,6 +44,11 @@ const NAVIGATION: Navigation = [
       },
     ]
   },
+  {
+    segment: 'mcp',
+    title: 'MCP Gateway',
+    icon: <ExtensionIcon />,
+  },
 ];
 
 const BRANDING = {
@@ -66,6 +73,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             
             <RightPanelProvider>
             <LeftPanelProvider>
+            <McpProvider>
             <AppProvider
               navigation={NAVIGATION}
               branding={BRANDING}
@@ -75,6 +83,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             >
               {props.children}
             </AppProvider>
+            </McpProvider>
             </LeftPanelProvider>
             </RightPanelProvider>
             
