@@ -39,11 +39,11 @@ export const McpProvider = ({ children }) => {
       }
       
       // JSON-RPC returns result in 'result' field
-      const toolsList = data.result?.tools || [];
-      setTools(toolsList);
-      console.log("[McpContext] Tools loaded:", toolsList);
+      const tools = data.result?.tools || [];
+      setTools(tools);
+      console.log("[McpContext] Tools loaded:", tools);
       
-      return toolsList;
+      return tools;
     } catch (err) {
       console.error("[McpContext] Error fetching tools:", err);
       setError(err.message);

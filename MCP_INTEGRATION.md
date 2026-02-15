@@ -225,7 +225,6 @@ const MCP_GATEWAY_URL = process.env.MCP_GATEWAY_URL || "http://143.198.108.210:8
 - All requests require authentication (via NextAuth session)
 - CORS headers are not set (same-origin only)
 - No rate limiting implemented (consider adding for production)
-- Input validation should be added for tool arguments
 
 ## Troubleshooting
 

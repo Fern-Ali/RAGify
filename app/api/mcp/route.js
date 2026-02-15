@@ -40,10 +40,10 @@ export async function POST(req) {
       );
     }
 
-    // Create JSON-RPC 2.0 request
+    // Create JSON-RPC 2.0 request with unique ID
     const jsonRpcRequest = {
       jsonrpc: "2.0",
-      id: Date.now(),
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       method: method,
       params: params
     };
@@ -51,7 +51,8 @@ export async function POST(req) {
     console.log("[MCP API] Sending JSON-RPC request to gateway:", jsonRpcRequest);
 
     // Send to the MCP gateway
-    const response = await fetch("http://143.198.108.210:8000/mcp", {
+    const mcpGatewayUrl = process.env.MCP_GATEWAY_URL || "http://143.198.108.210:8000/mcp";
+    const response = await fetch(mcpGatewayUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
