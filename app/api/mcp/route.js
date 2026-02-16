@@ -51,13 +51,13 @@ async function makeJsonRpcRequest(method, params = {}) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { method, params } = body;
+    const { method, params, id } = body;
 
     if (!method) {
       return NextResponse.json(
         {
           jsonrpc: "2.0",
-          id: null,
+          id: id || null,
           error: {
             code: -32600,
             message: "Invalid Request: method is required",
@@ -73,7 +73,7 @@ export async function POST(req) {
       
       return NextResponse.json({
         jsonrpc: "2.0",
-        id: generateRequestId(),
+        id: id || generateRequestId(),
         result,
       });
     } catch (error) {
@@ -90,7 +90,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           jsonrpc: "2.0",
-          id: null,
+          id: id || null,
           error: {
             code: errorCode,
             message: error.message || "Internal error",

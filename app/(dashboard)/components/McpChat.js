@@ -85,7 +85,7 @@ export default function McpChat() {
               Enter a tool name and arguments to execute
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Example: search with {'{'}&#34;query&#34;: &#34;test&#34;{'}'}
+              Example: search with <Box component="code" sx={{ px: 0.5, py: 0.25, backgroundColor: 'action.hover', borderRadius: 0.5 }}>{'{"query": "test"}'}</Box>
             </Typography>
           </Box>
         ) : (

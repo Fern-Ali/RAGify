@@ -26,6 +26,8 @@ export function McpProvider({ children }) {
 
   // Make a JSON-RPC request to the MCP gateway
   const makeRpcRequest = useCallback(async (method, params = {}) => {
+    const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    
     const response = await fetch('/api/mcp', {
       method: 'POST',
       headers: {
@@ -34,6 +36,7 @@ export function McpProvider({ children }) {
       body: JSON.stringify({
         method,
         params,
+        id: requestId,
       }),
     });
 
