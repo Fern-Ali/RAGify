@@ -19,6 +19,7 @@ export function McpProvider({ children }) {
   const [prompts, setPrompts] = useState([]);
   const [resources, setResources] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [executingTools, setExecutingTools] = useState(new Set());
@@ -37,6 +38,7 @@ export function McpProvider({ children }) {
         method,
         params,
         id: requestId,
+        sessionId,
       }),
     });
 
@@ -46,6 +48,11 @@ export function McpProvider({ children }) {
 
     const data = await response.json();
 
+    // Store session ID from response if provided
+    if (data.sessionId && !sessionId) {
+      setSessionId(data.sessionId);
+    }
+
     // Handle JSON-RPC error response
     if (data.error) {
       const error = new Error(data.error.message || 'JSON-RPC error');
@@ -54,7 +61,7 @@ export function McpProvider({ children }) {
     }
 
     return data.result;
-  }, []);
+  }, [sessionId]);
 
   // Fetch available tools from the MCP gateway
   const fetchTools = useCallback(async () => {
@@ -201,6 +208,7 @@ export function McpProvider({ children }) {
     prompts,
     resources,
     messages,
+    sessionId,
     isConnected,
     isLoading,
     executingTools,

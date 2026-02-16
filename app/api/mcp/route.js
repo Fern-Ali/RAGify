@@ -9,7 +9,7 @@ function generateRequestId() {
 }
 
 // Make JSON-RPC 2.0 request to MCP gateway
-async function makeJsonRpcRequest(method, params = {}) {
+async function makeJsonRpcRequest(method, params = {}, sessionId = null) {
   const requestId = generateRequestId();
   
   const rpcRequest = {
@@ -21,12 +21,20 @@ async function makeJsonRpcRequest(method, params = {}) {
 
   console.log("[MCP] JSON-RPC Request:", JSON.stringify(rpcRequest, null, 2));
 
+  // Build headers
+  const headers = {
+    "Content-Type": "application/json",
+    "Accept": "application/json, text/event-stream",
+  };
+
+  // Add session ID header if provided
+  if (sessionId) {
+    headers["X-Session-ID"] = sessionId;
+  }
+
   const response = await fetch(MCP_GATEWAY_URL, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json, text/event-stream",
-    },
+    headers,
     body: JSON.stringify(rpcRequest),
   });
 
@@ -60,7 +68,7 @@ async function makeJsonRpcRequest(method, params = {}) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { method, params, id } = body;
+    const { method, params, id, sessionId } = body;
 
     if (!method) {
       return NextResponse.json(
@@ -76,14 +84,18 @@ export async function POST(req) {
       );
     }
 
+    // Generate session ID if not provided
+    const effectiveSessionId = sessionId || generateRequestId();
+
     // Proxy the JSON-RPC request to the gateway
     try {
-      const result = await makeJsonRpcRequest(method, params || {});
+      const result = await makeJsonRpcRequest(method, params || {}, effectiveSessionId);
       
       return NextResponse.json({
         jsonrpc: "2.0",
         id: id || generateRequestId(),
         result,
+        sessionId: effectiveSessionId,
       });
     } catch (error) {
       console.error("[MCP] Error:", error);
