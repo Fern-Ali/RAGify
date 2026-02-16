@@ -42,9 +42,9 @@ export function McpProvider({ children }) {
       headers,
       body: JSON.stringify({
         jsonrpc: "2.0",
-        id: requestId,
         method,
         params,
+        id: requestId,
       }),
     });
 
