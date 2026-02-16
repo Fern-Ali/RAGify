@@ -1,13 +1,15 @@
-"use client";
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid2';
 import Paper from '@mui/material/Paper';
+import { auth } from '../../../auth';
 
 import McpChat from '../components/McpChat';
 
-export default function McpPage() {
+export default async function McpPage() {
+  const session = await auth();
+
   return (
     <Box sx={{ flexGrow: 1, height: '100%' }}>
       <Typography variant="h4" gutterBottom>
@@ -18,7 +20,7 @@ export default function McpPage() {
       </Typography>
       
       <Paper elevation={2} sx={{ height: 'calc(100vh - 200px)' }}>
-        <McpChat />
+        <McpChat session={session} />
       </Paper>
     </Box>
   );

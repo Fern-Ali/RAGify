@@ -17,7 +17,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import { useNotifications } from '@toolpad/core/useNotifications';
 import { useMcp } from '../contexts/McpContext';
 
-export default function McpChat() {
+export default function McpChat({ session }) {
   const [toolName, setToolName] = useState("");
   const [toolArgs, setToolArgs] = useState("{}");
   const { messages, isLoading, callTool, executingTools, toolResults } = useMcp();
@@ -41,9 +41,12 @@ export default function McpChat() {
         return;
       }
 
+      // Get session ID from NextAuth session
+      const sessionId = session?.user?.sessionId;
+
       notifications.show(`Executing tool: ${toolName}`, { severity: "info", autoHideDuration: 2000 });
       
-      const result = await callTool(toolName, args);
+      const result = await callTool(toolName, args, sessionId);
       
       notifications.show("Tool executed successfully!", { severity: "success", autoHideDuration: 2000 });
       console.log("Tool result:", result);

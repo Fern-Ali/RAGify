@@ -84,18 +84,14 @@ export async function POST(req) {
       );
     }
 
-    // Generate session ID if not provided
-    const effectiveSessionId = sessionId || generateRequestId();
-
     // Proxy the JSON-RPC request to the gateway
     try {
-      const result = await makeJsonRpcRequest(method, params || {}, effectiveSessionId);
+      const result = await makeJsonRpcRequest(method, params || {}, sessionId);
       
       return NextResponse.json({
         jsonrpc: "2.0",
         id: id || generateRequestId(),
         result,
-        sessionId: effectiveSessionId,
       });
     } catch (error) {
       console.error("[MCP] Error:", error);

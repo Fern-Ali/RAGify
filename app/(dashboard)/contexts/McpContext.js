@@ -19,14 +19,13 @@ export function McpProvider({ children }) {
   const [prompts, setPrompts] = useState([]);
   const [resources, setResources] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [sessionId, setSessionId] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [executingTools, setExecutingTools] = useState(new Set());
   const [toolResults, setToolResults] = useState({});
 
   // Make a JSON-RPC request to the MCP gateway
-  const makeRpcRequest = useCallback(async (method, params = {}) => {
+  const makeRpcRequest = useCallback(async (method, params = {}, sessionId = null) => {
     const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
     const response = await fetch('/api/mcp', {
@@ -48,11 +47,6 @@ export function McpProvider({ children }) {
 
     const data = await response.json();
 
-    // Store session ID from response if provided
-    if (data.sessionId) {
-      setSessionId(data.sessionId);
-    }
-
     // Handle JSON-RPC error response
     if (data.error) {
       const error = new Error(data.error.message || 'JSON-RPC error');
@@ -61,13 +55,13 @@ export function McpProvider({ children }) {
     }
 
     return data.result;
-  }, [sessionId]);
+  }, []);
 
   // Fetch available tools from the MCP gateway
-  const fetchTools = useCallback(async () => {
+  const fetchTools = useCallback(async (sessionId = null) => {
     try {
       setIsLoading(true);
-      const result = await makeRpcRequest('tools/list');
+      const result = await makeRpcRequest('tools/list', {}, sessionId);
       setTools(result.tools || []);
       setIsConnected(true);
       return result.tools;
@@ -81,10 +75,10 @@ export function McpProvider({ children }) {
   }, [makeRpcRequest]);
 
   // Fetch available prompts from the MCP gateway
-  const fetchPrompts = useCallback(async () => {
+  const fetchPrompts = useCallback(async (sessionId = null) => {
     try {
       setIsLoading(true);
-      const result = await makeRpcRequest('prompts/list');
+      const result = await makeRpcRequest('prompts/list', {}, sessionId);
       setPrompts(result.prompts || []);
       return result.prompts;
     } catch (error) {
@@ -96,10 +90,10 @@ export function McpProvider({ children }) {
   }, [makeRpcRequest]);
 
   // Fetch available resources from the MCP gateway
-  const fetchResources = useCallback(async () => {
+  const fetchResources = useCallback(async (sessionId = null) => {
     try {
       setIsLoading(true);
-      const result = await makeRpcRequest('resources/list');
+      const result = await makeRpcRequest('resources/list', {}, sessionId);
       setResources(result.resources || []);
       return result.resources;
     } catch (error) {
@@ -111,7 +105,7 @@ export function McpProvider({ children }) {
   }, [makeRpcRequest]);
 
   // Call a tool with arguments
-  const callTool = useCallback(async (name, argumentsObj = {}) => {
+  const callTool = useCallback(async (name, argumentsObj = {}, sessionId = null) => {
     try {
       // Mark tool as executing
       setExecutingTools(prev => new Set([...prev, name]));
@@ -119,7 +113,7 @@ export function McpProvider({ children }) {
       const result = await makeRpcRequest('tools/call', {
         name,
         arguments: argumentsObj,
-      });
+      }, sessionId);
 
       // Store tool result
       setToolResults(prev => ({
@@ -154,7 +148,7 @@ export function McpProvider({ children }) {
   }, [makeRpcRequest]);
 
   // Send a message (for future chat functionality if supported)
-  const sendMessage = useCallback(async (message) => {
+  const sendMessage = useCallback(async (message, sessionId = null) => {
     try {
       setIsLoading(true);
 
@@ -171,7 +165,7 @@ export function McpProvider({ children }) {
       const result = await makeRpcRequest('message', {
         message,
         history: messages,
-      });
+      }, sessionId);
 
       // Add assistant response to messages
       if (result.response || result.content) {
@@ -208,7 +202,6 @@ export function McpProvider({ children }) {
     prompts,
     resources,
     messages,
-    sessionId,
     isConnected,
     isLoading,
     executingTools,
