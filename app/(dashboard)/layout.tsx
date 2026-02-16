@@ -6,6 +6,7 @@ import {
   type SidebarFooterProps,
 } from "@toolpad/core/DashboardLayout";
 import { PageContainer } from "@toolpad/core/PageContainer";
+import { usePathname } from "next/navigation";
 
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -29,6 +30,7 @@ import { useLeftPanel } from "../(dashboard)/contexts/LeftPanelContext";
 
 import RagResponse from "../(dashboard)/components/RagResponse";
 import DefaultStateSidebar from "../(dashboard)/components/DefaultStateSidebar";
+import McpToolsSidebar from "../(dashboard)/components/McpToolsSidebar";
 
 const drawerWidth = 600;
 
@@ -59,6 +61,8 @@ const RightDrawer = styled(Drawer)(({ theme }) => ({
 
 
 export default function Layout(props: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isMcpPage = pathname?.includes('/mcp');
   const { isNavigationExpanded, toggleNavigationExpanded } = useLeftPanel();
   const { isDrawerOpen, setDrawerOpen, response } = useRightPanel();
   const [rightDrawerWidth, setRightDrawerWidth] = React.useState(600);
@@ -184,7 +188,9 @@ React.useEffect(() => {
               overflow: "auto",
             }}
           >
-            {response ? (
+            {isMcpPage ? (
+              <McpToolsSidebar />
+            ) : response ? (
               <RagResponse response={response} />
             ) : (
               <DefaultStateSidebar />
