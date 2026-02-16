@@ -68,7 +68,10 @@ async function makeJsonRpcRequest(method, params = {}, sessionId = null) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { method, params, id, sessionId } = body;
+    const { method, params, id } = body;
+
+    // Get session ID from headers
+    const sessionId = req.headers.get('X-Session-ID');
 
     if (!method) {
       return NextResponse.json(
@@ -91,7 +94,7 @@ export async function POST(req) {
           id: id || null,
           error: {
             code: -32600,
-            message: "Invalid Request: sessionId is required",
+            message: "Invalid Request: X-Session-ID header is required",
           },
         },
         { status: 400 }

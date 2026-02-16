@@ -28,16 +28,23 @@ export function McpProvider({ children }) {
   const makeRpcRequest = useCallback(async (method, params = {}, sessionId = null) => {
     const requestId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
     
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add session ID to headers if provided
+    if (sessionId) {
+      headers['X-Session-ID'] = sessionId;
+    }
+
     const response = await fetch('/api/mcp', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: requestId,
         method,
         params,
-        id: requestId,
-        sessionId,
       }),
     });
 
