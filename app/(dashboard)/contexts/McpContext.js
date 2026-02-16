@@ -16,28 +16,51 @@ export function useMcp() {
 // Context provider
 export function McpProvider({ children }) {
   const [tools, setTools] = useState([]);
+  const [prompts, setPrompts] = useState([]);
+  const [resources, setResources] = useState([]);
   const [messages, setMessages] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [executingTools, setExecutingTools] = useState(new Set());
   const [toolResults, setToolResults] = useState({});
 
+  // Make a JSON-RPC request to the MCP gateway
+  const makeRpcRequest = useCallback(async (method, params = {}) => {
+    const response = await fetch('/api/mcp', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        method,
+        params,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Handle JSON-RPC error response
+    if (data.error) {
+      const error = new Error(data.error.message || 'JSON-RPC error');
+      error.code = data.error.code;
+      throw error;
+    }
+
+    return data.result;
+  }, []);
+
   // Fetch available tools from the MCP gateway
   const fetchTools = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/mcp', {
-        method: 'GET',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch tools: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setTools(data.tools || []);
+      const result = await makeRpcRequest('tools/list');
+      setTools(result.tools || []);
       setIsConnected(true);
-      return data.tools;
+      return result.tools;
     } catch (error) {
       console.error('Error fetching tools:', error);
       setIsConnected(false);
@@ -45,99 +68,65 @@ export function McpProvider({ children }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [makeRpcRequest]);
 
-  // Send a message to the MCP chat
-  const sendMessage = useCallback(async (message) => {
+  // Fetch available prompts from the MCP gateway
+  const fetchPrompts = useCallback(async () => {
     try {
       setIsLoading(true);
-      
-      // Add user message to the UI immediately
-      const userMessage = {
-        role: 'user',
-        content: message,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages(prev => [...prev, userMessage]);
-
-      const response = await fetch('/api/mcp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'chat',
-          message,
-          history: messages,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to send message: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Add assistant response to messages
-      if (data.response) {
-        const assistantMessage = {
-          role: 'assistant',
-          content: data.response,
-          timestamp: new Date().toISOString(),
-          toolCalls: data.toolCalls,
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }
-      
-      return data;
+      const result = await makeRpcRequest('prompts/list');
+      setPrompts(result.prompts || []);
+      return result.prompts;
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Error fetching prompts:', error);
       throw error;
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [makeRpcRequest]);
 
-  // Execute a tool
-  const executeTool = useCallback(async (toolName, parameters) => {
+  // Fetch available resources from the MCP gateway
+  const fetchResources = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const result = await makeRpcRequest('resources/list');
+      setResources(result.resources || []);
+      return result.resources;
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [makeRpcRequest]);
+
+  // Call a tool with arguments
+  const callTool = useCallback(async (name, argumentsObj = {}) => {
     try {
       // Mark tool as executing
-      setExecutingTools(prev => new Set([...prev, toolName]));
-      
-      const response = await fetch('/api/mcp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'executeTool',
-          toolName,
-          parameters,
-        }),
+      setExecutingTools(prev => new Set([...prev, name]));
+
+      const result = await makeRpcRequest('tools/call', {
+        name,
+        arguments: argumentsObj,
       });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to execute tool '${toolName}': ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
+
       // Store tool result
       setToolResults(prev => ({
         ...prev,
-        [toolName]: {
-          result: data.result,
+        [name]: {
+          result,
           timestamp: new Date().toISOString(),
           success: true,
         },
       }));
-      
-      return data;
+
+      return result;
     } catch (error) {
-      console.error('Error executing tool:', error);
+      console.error('Error calling tool:', error);
       setToolResults(prev => ({
         ...prev,
-        [toolName]: {
+        [name]: {
           error: error.message,
           timestamp: new Date().toISOString(),
           success: false,
@@ -148,11 +137,51 @@ export function McpProvider({ children }) {
       // Remove tool from executing set
       setExecutingTools(prev => {
         const newSet = new Set(prev);
-        newSet.delete(toolName);
+        newSet.delete(name);
         return newSet;
       });
     }
-  }, []);
+  }, [makeRpcRequest]);
+
+  // Send a message (for future chat functionality if supported)
+  const sendMessage = useCallback(async (message) => {
+    try {
+      setIsLoading(true);
+
+      // Add user message to the UI immediately
+      const userMessage = {
+        role: 'user',
+        content: message,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+
+      // Note: This assumes the gateway might support a message method
+      // Adjust based on actual gateway capabilities
+      const result = await makeRpcRequest('message', {
+        message,
+        history: messages,
+      });
+
+      // Add assistant response to messages
+      if (result.response || result.content) {
+        const assistantMessage = {
+          role: 'assistant',
+          content: result.response || result.content,
+          timestamp: new Date().toISOString(),
+          toolCalls: result.toolCalls,
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [messages, makeRpcRequest]);
 
   // Clear messages
   const clearMessages = useCallback(() => {
@@ -166,14 +195,18 @@ export function McpProvider({ children }) {
 
   const value = {
     tools,
+    prompts,
+    resources,
     messages,
     isConnected,
     isLoading,
     executingTools,
     toolResults,
     fetchTools,
+    fetchPrompts,
+    fetchResources,
+    callTool,
     sendMessage,
-    executeTool,
     clearMessages,
     clearToolResults,
   };
@@ -184,3 +217,4 @@ export function McpProvider({ children }) {
     </McpContext.Provider>
   );
 }
+

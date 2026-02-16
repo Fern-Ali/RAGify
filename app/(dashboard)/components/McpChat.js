@@ -18,33 +18,44 @@ import { useNotifications } from '@toolpad/core/useNotifications';
 import { useMcp } from '../contexts/McpContext';
 
 export default function McpChat() {
-  const [query, setQuery] = useState("");
-  const { messages, isLoading, sendMessage, executingTools } = useMcp();
+  const [toolName, setToolName] = useState("");
+  const [toolArgs, setToolArgs] = useState("{}");
+  const { messages, isLoading, callTool, executingTools, toolResults } = useMcp();
   const notifications = useNotifications();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!query.trim()) {
+    if (!toolName.trim()) {
+      notifications.show("Please enter a tool name", { severity: "warning", autoHideDuration: 2000 });
       return;
     }
 
     try {
-      notifications.show("Sending message to MCP...", { severity: "info", autoHideDuration: 2000 });
+      // Parse the JSON arguments
+      let args = {};
+      try {
+        args = JSON.parse(toolArgs);
+      } catch (parseError) {
+        notifications.show("Invalid JSON in arguments field", { severity: "error", autoHideDuration: 3000 });
+        return;
+      }
+
+      notifications.show(`Executing tool: ${toolName}`, { severity: "info", autoHideDuration: 2000 });
       
-      await sendMessage(query);
-      setQuery(""); // Clear input after sending
+      const result = await callTool(toolName, args);
       
-      notifications.show("Response received!", { severity: "success", autoHideDuration: 2000 });
+      notifications.show("Tool executed successfully!", { severity: "success", autoHideDuration: 2000 });
+      console.log("Tool result:", result);
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Error executing tool:", error);
       notifications.show(`Error: ${error.message}`, { severity: "error", autoHideDuration: 3000 });
     }
   };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
-      {/* Messages Area */}
+      {/* Results Area */}
       <Box
         sx={{
           flexGrow: 1,
@@ -55,7 +66,7 @@ export default function McpChat() {
           gap: 2,
         }}
       >
-        {messages.length === 0 ? (
+        {Object.keys(toolResults).length === 0 ? (
           <Box
             sx={{
               display: 'flex',
@@ -66,62 +77,62 @@ export default function McpChat() {
               textAlign: 'center',
             }}
           >
-            <SmartToyIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
+            <BuildIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
             <Typography variant="h5" gutterBottom>
-              Welcome to MCP Chat
+              MCP Tool Execution
             </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Ask questions and interact with MCP tools
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+              Enter a tool name and arguments to execute
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Example: search with {'{'}&#34;query&#34;: &#34;test&#34;{'}'}
             </Typography>
           </Box>
         ) : (
-          messages.map((msg, index) => (
+          Object.entries(toolResults).map(([name, result]) => (
             <Paper
-              key={index}
+              key={name}
               elevation={1}
               sx={{
                 padding: 2,
-                alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                maxWidth: '75%',
-                backgroundColor: msg.role === 'user' ? 'primary.main' : 'background.paper',
-                color: msg.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                backgroundColor: result.success ? 'background.paper' : 'error.dark',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                {msg.role === 'user' ? (
-                  <PersonIcon fontSize="small" />
-                ) : (
-                  <SmartToyIcon fontSize="small" />
-                )}
-                <Typography variant="caption" fontWeight="bold">
-                  {msg.role === 'user' ? 'You' : 'Assistant'}
+                <BuildIcon fontSize="small" color={result.success ? 'primary' : 'error'} />
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {name}
                 </Typography>
+                <Chip
+                  label={result.success ? 'Success' : 'Failed'}
+                  size="small"
+                  color={result.success ? 'success' : 'error'}
+                  sx={{ ml: 'auto' }}
+                />
               </Box>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {msg.content}
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                {new Date(result.timestamp).toLocaleString()}
               </Typography>
-              {msg.toolCalls && msg.toolCalls.length > 0 && (
-                <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {msg.toolCalls.map((tool, idx) => (
-                    <Chip
-                      key={idx}
-                      icon={<BuildIcon />}
-                      label={tool.name || tool}
-                      size="small"
-                      color="secondary"
-                    />
-                  ))}
+              {result.success ? (
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: 'action.hover',
+                    padding: 1,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  {JSON.stringify(result.result, null, 2)}
                 </Box>
+              ) : (
+                <Typography variant="body2" color="error">
+                  {result.error}
+                </Typography>
               )}
             </Paper>
           ))
-        )}
-        
-        {/* Show loading indicator when processing */}
-        {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <CircularProgress size={24} />
-          </Box>
         )}
         
         {/* Show executing tools */}
@@ -130,13 +141,11 @@ export default function McpChat() {
             elevation={1}
             sx={{
               padding: 2,
-              alignSelf: 'flex-start',
-              maxWidth: '75%',
               backgroundColor: 'action.hover',
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={16} />
+              <CircularProgress size={20} />
               <Typography variant="body2">
                 Executing: {Array.from(executingTools).join(', ')}
               </Typography>
@@ -153,36 +162,51 @@ export default function McpChat() {
         sx={{
           padding: 2,
           display: 'flex',
-          alignItems: 'center',
-          gap: 1,
+          flexDirection: 'column',
+          gap: 2,
         }}
       >
         <TextField
           fullWidth
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask a question or request a tool..."
+          value={toolName}
+          onChange={(e) => setToolName(e.target.value)}
+          placeholder="Tool name (e.g., search, fetch_data)"
           variant="outlined"
           disabled={isLoading}
-          size="medium"
+          size="small"
+          label="Tool Name"
         />
-        <IconButton
-          type="submit"
-          color="primary"
-          disabled={isLoading || !query.trim()}
-          sx={{
-            backgroundColor: 'primary.main',
-            color: 'white',
-            '&:hover': {
-              backgroundColor: 'primary.dark',
-            },
-            '&:disabled': {
-              backgroundColor: 'action.disabledBackground',
-            },
-          }}
-        >
-          <SendIcon />
-        </IconButton>
+        <TextField
+          fullWidth
+          value={toolArgs}
+          onChange={(e) => setToolArgs(e.target.value)}
+          placeholder='{"key": "value"}'
+          variant="outlined"
+          disabled={isLoading}
+          size="small"
+          label="Arguments (JSON)"
+          multiline
+          rows={3}
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <IconButton
+            type="submit"
+            color="primary"
+            disabled={isLoading || !toolName.trim()}
+            sx={{
+              backgroundColor: 'primary.main',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+              },
+              '&:disabled': {
+                backgroundColor: 'action.disabledBackground',
+              },
+            }}
+          >
+            <SendIcon />
+          </IconButton>
+        </Box>
       </Paper>
     </Box>
   );
