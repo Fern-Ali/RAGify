@@ -32,14 +32,14 @@ async function makeJsonRpcRequest(method, params = {}) {
 
   if (!response.ok) {
     // Try to get response body for more details
-    let errorDetails = "";
+    let responseBody = "";
     try {
-      const errorBody = await response.text();
-      errorDetails = errorBody ? ` - ${errorBody}` : "";
+      const errorText = await response.text();
+      responseBody = errorText ? ` - ${errorText}` : "";
     } catch (e) {
       // Ignore if we can't read the body
     }
-    throw new Error(`MCP Gateway HTTP error: ${response.status} ${response.statusText}${errorDetails}`);
+    throw new Error(`MCP Gateway HTTP error: ${response.status} ${response.statusText}${responseBody}`);
   }
 
   const data = await response.json();
