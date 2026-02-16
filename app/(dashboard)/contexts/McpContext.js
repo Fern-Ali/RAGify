@@ -49,7 +49,7 @@ export function McpProvider({ children }) {
     const data = await response.json();
 
     // Store session ID from response if provided
-    if (data.sessionId && !sessionId) {
+    if (data.sessionId) {
       setSessionId(data.sessionId);
     }
 
