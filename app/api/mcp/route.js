@@ -84,6 +84,20 @@ export async function POST(req) {
       );
     }
 
+    if (!sessionId) {
+      return NextResponse.json(
+        {
+          jsonrpc: "2.0",
+          id: id || null,
+          error: {
+            code: -32600,
+            message: "Invalid Request: sessionId is required",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     // Proxy the JSON-RPC request to the gateway
     try {
       const result = await makeJsonRpcRequest(method, params || {}, sessionId);

@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid2';
 import Paper from '@mui/material/Paper';
-import { auth } from '../../../auth';
+import { auth } from '@/auth';
 
 import McpChat from '../components/McpChat';
 

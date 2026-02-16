@@ -31,6 +31,14 @@ export default function McpChat({ session }) {
       return;
     }
 
+    // Get session ID from NextAuth session
+    const sessionId = session?.user?.sessionId;
+    
+    if (!sessionId) {
+      notifications.show("Session ID not available. Please refresh the page.", { severity: "error", autoHideDuration: 3000 });
+      return;
+    }
+
     try {
       // Parse the JSON arguments
       let args = {};
@@ -40,9 +48,6 @@ export default function McpChat({ session }) {
         notifications.show("Invalid JSON in arguments field", { severity: "error", autoHideDuration: 3000 });
         return;
       }
-
-      // Get session ID from NextAuth session
-      const sessionId = session?.user?.sessionId;
 
       notifications.show(`Executing tool: ${toolName}`, { severity: "info", autoHideDuration: 2000 });
       
